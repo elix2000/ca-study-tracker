@@ -80,10 +80,10 @@
 
     <div id="dashboardView" class="view-section active">
         <div class="stats-grid">
-            <div class="stat-box"><div class="stat-value">--</div><div class="stat-label">Avg. per session</div></div>
+            <div class="stat-box"><div class="stat-value" id="daysLeft" style="color: var(--primary);">--</div><div class="stat-label">Days to Exam</div></div>
             <div class="stat-box"><div class="stat-value">--</div><div class="stat-label">Best per day</div></div>
             <div class="stat-box"><div class="stat-value" id="todayTotalTime">0h 0m</div><div class="stat-label">Today's Time</div></div>
-            <div class="stat-box"><div class="stat-value" style="color: var(--primary);">--</div><div class="stat-label">Focus Score</div></div>
+            <div class="stat-box"><div class="stat-value" style="color: var(--success);">--</div><div class="stat-label">Focus Score</div></div>
         </div>
 
         <div class="card timer-card">
@@ -154,7 +154,11 @@
         </div>
 
         <div id="step2" class="planner-step">
-            <div id="calendarOutput"></div>
+            <div id="calendarOutput">
+                <div style="text-align: center; padding: 30px; color: var(--text-muted); font-style: italic;">
+                    Your generated plan will appear here.
+                </div>
+            </div>
             <button class="btn-secondary" style="margin-top: 20px; width: 100%;" onclick="switchPlannerTab('step1', document.getElementById('tab-step1'))">← Back to Edit Hours</button>
         </div>
     </div>
@@ -191,12 +195,31 @@
         window.onload = function() { 
             let subSel = document.getElementById('subjectSelect');
             Object.keys(caSyllabus).forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
-            loadChapters(); updateTodayTotalTime(); loadPlannerSettings(); 
+            loadChapters(); 
+            updateTodayTotalTime(); 
+            loadPlannerSettings(); 
+            updateDaysLeft(); // Calculates countdown on load
+            
+            // Restore saved plan if it exists
+            const savedPlan = localStorage.getItem('studyTracker_saved_plan');
+            if(savedPlan) {
+                document.getElementById('calendarOutput').innerHTML = savedPlan;
+            }
+
             document.querySelectorAll('#step1 input').forEach(inp => {
                 inp.addEventListener('input', savePlannerSettings);
                 inp.addEventListener('change', savePlannerSettings);
             });
         };
+
+        function updateDaysLeft() {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const examDate = new Date(2026, 8, 1); // September 1, 2026
+            const diffTime = examDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById('daysLeft').innerText = diffDays > 0 ? diffDays : 0;
+        }
 
         function savePlannerSettings() {
             const settings = {
@@ -220,12 +243,11 @@
             } else { document.getElementById('planStart').valueAsDate = new Date(); }
         }
 
-        // VISUAL TAB UPDATER FIX
         function switchTab(tabId, element) { 
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
             document.getElementById(tabId + 'View').classList.add('active'); 
-            element.classList.add('active'); // Restored active class updater
+            element.classList.add('active'); 
             if (tabId === 'progress') renderHistoryLogs(); 
         }
 
@@ -239,7 +261,6 @@
         function calcRevCascade(subj) { let r1 = parseFloat(document.getElementById(subj + 'Rev1').value) || 0; let r2 = Math.round(r1 * 0.75); let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev2').value = r2; document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
         function calcRevManual2(subj) { let r2 = parseFloat(document.getElementById(subj + 'Rev2').value) || 0; let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
 
-        // RESTORED FULL MATH ENGINE
         function generatePlan() {
             const startStr = document.getElementById('planStart').value;
             const classDL = document.getElementById('planClassesEnd').value;
@@ -307,7 +328,9 @@
             let dStr = examDate.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'});
             tableHtml += `<tr style="background: #F8FAFC;"><td style="white-space: nowrap; font-weight: bold;">${dStr}</td><td class="slot-text">Afternoon</td><td><span class="badge-exam">EXAM DAY</span></td><td class="subj-text" style="color: #1E3A8A;">Adv. Accounts</td><td class="hrs-text" style="color: #1E3A8A;">3.0 hrs</td></tr></tbody></table></div>`;
             
+            // Output to UI and Save to Memory
             document.getElementById('calendarOutput').innerHTML = tableHtml;
+            localStorage.setItem('studyTracker_saved_plan', tableHtml);
             switchPlannerTab('step2', document.getElementById('tab-step2'));
         }
 
