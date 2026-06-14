@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyTracker - Study Analytics</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --accent-purple: #8b5cf6;
+            --accent-light: #ddd6fe;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0 15px 80px 15px; color: var(--text-main); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
+        .header-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px;}
+        .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; margin-bottom: 4px; }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .timer-card { border: 2px solid var(--accent-light); border-radius: 16px; text-align: center; position: relative;}
+        .timer-badge { background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: bold; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 15px;}
+        .timer-display { font-size: 3.5rem; font-family: monospace; font-weight: bold; color: var(--primary); margin: 10px 0; letter-spacing: -1px;}
+        
+        .inputs-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .input-field { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
+        
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; width: 100%; cursor: pointer; }
+        .btn-stop { background: #ef4444; color: white; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; width: 100%; display: none; }
+        .btn-secondary { flex: 1; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; }
+
+        .action-row { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0 15px 0; z-index: 1000; }
+        .nav-item { text-align: center; color: var(--text-muted); font-size: 0.75rem; flex: 1; cursor: pointer;}
+        .nav-item.active { color: var(--accent-purple); font-weight: bold; }
+        .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 4px; }
+        
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .planner-nav { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .planner-tab { padding: 8px 16px; background: white; border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+        .planner-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .planner-step { display: none; }
+        .planner-step.active { display: block; }
+        
+        .date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .planner-subject-card { border: 1px solid var(--primary); border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white; border-top: 4px solid var(--primary); }
+        .planner-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border-color); }
+        .planner-row:last-child { border-bottom: none; }
+        .planner-input { width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; font-weight: bold; }
+
+        .table-container { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); }
+        .plan-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
+        .plan-table th { padding: 12px 10px; background: var(--bg-color); border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .plan-table td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .plan-table tr:last-child td { border-bottom: none; }
+        .slot-text { color: var(--text-muted); font-size: 0.8rem; }
+        .subj-text { font-weight: 600; color: var(--primary); font-size: 0.85rem; }
+        .hrs-text { font-family: monospace; font-weight: bold; font-size: 0.9rem; }
+        
+        .badge-c { background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+        .badge-r1 { background: #EDE9FE; color: #4C1D95; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+        .badge-r2 { background: #D1FAE5; color: #064E3B; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+        .badge-r3 { background: #FCE7F3; color: #831843; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+        .badge-pre { background: #FEE2E2; color: #991B1B; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+        .badge-exam { background: #DBEAFE; color: #1E3A8A; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-title">📊 StudyTracker</div>
+        <div style="font-size: 1.2rem;">📅</div>
+    </div>
+
+    <div id="dashboardView" class="view-section active">
+        <div class="stats-grid">
+            <div class="stat-box"><div class="stat-value">--</div><div class="stat-label">Avg. per session</div></div>
+            <div class="stat-box"><div class="stat-value">--</div><div class="stat-label">Best per day</div></div>
+            <div class="stat-box"><div class="stat-value" id="todayTotalTime">0h 0m</div><div class="stat-label">Today's Time</div></div>
+            <div class="stat-box"><div class="stat-value" style="color: var(--primary);">--</div><div class="stat-label">Focus Score</div></div>
+        </div>
+
+        <div class="card timer-card">
+            <div class="timer-badge">● ACTIVE SESSION</div>
+            <div class="inputs-container">
+                <select id="subjectSelect" class="input-field" onchange="loadChapters()">
+                    <option value="Adv. Accounts">Adv. Accounts</option>
+                    <option value="Law">Law</option>
+                    <option value="Direct Tax">Direct Tax</option>
+                    <option value="Indirect Tax">Indirect Tax</option>
+                </select>
+                <select id="chapterInput" class="input-field"></select>
+            </div>
+            <div class="timer-display" id="timeDisplay">00:00:00</div>
+            <button class="btn-primary" id="startBtn" onclick="startTimer()">▶ Start</button>
+            <button class="btn-stop" id="stopBtn" onclick="stopTimer()">⏹ End Session & Save</button>
+        </div>
+    </div>
+
+    <div id="plannerView" class="view-section">
+        <div class="section-title">Exam Planner (Sept 2026)</div>
+        
+        <div class="planner-nav">
+            <div class="planner-tab active" id="tab-step1" onclick="switchPlannerTab('step1', this)">1. Hours & Settings</div>
+            <div class="planner-tab" id="tab-step2" onclick="switchPlannerTab('step2', this)">2. My Plan</div>
+        </div>
+
+        <div id="step1" class="planner-step active">
+            <div class="card">
+                <div class="date-grid">
+                    <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px;">START DATE</div>
+                        <input type="date" id="planStart" class="input-field">
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px;">FINISH CLASSES BY</div>
+                        <input type="date" id="planClassesEnd" class="input-field" value="2026-07-15">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 20px;">Group 1 Subjects</div>
+
+            <div class="planner-subject-card">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.1rem;">Adv. Accounts</h3>
+                <div class="planner-row"><span>1st Revision</span><div><input type="number" id="advRev1" class="planner-input" value="40" oninput="calcRevCascade('adv')"> hrs</div></div>
+                <div class="planner-row"><span>2nd Revision <span style="font-size: 0.7rem; color: var(--accent-purple);">(75%)</span></span><div><input type="number" id="advRev2" class="planner-input" value="30" oninput="calcRevManual2('adv')"> hrs</div></div>
+                <div class="planner-row"><span>3rd Revision <span style="font-size: 0.7rem; color: var(--success);">(50%)</span></span><div><input type="number" id="advRev3" class="planner-input" value="15"> hrs</div></div>
+            </div>
+
+            <div class="planner-subject-card" style="border-top-color: var(--success);">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: var(--success);">Corporate Law</h3>
+                <div class="planner-row"><span>1st Revision</span><div><input type="number" id="lawRev1" class="planner-input" value="60" oninput="calcRevCascade('law')"> hrs</div></div>
+                <div class="planner-row"><span>2nd Revision <span style="font-size: 0.7rem; color: var(--accent-purple);">(75%)</span></span><div><input type="number" id="lawRev2" class="planner-input" value="45" oninput="calcRevManual2('law')"> hrs</div></div>
+                <div class="planner-row"><span>3rd Revision <span style="font-size: 0.7rem; color: var(--success);">(50%)</span></span><div><input type="number" id="lawRev3" class="planner-input" value="23"> hrs</div></div>
+            </div>
+
+            <div class="planner-subject-card" style="border-top-color: var(--warning);">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: var(--warning);">Direct Tax</h3>
+                <div class="planner-row"><span>1st Revision</span><div><input type="number" id="dtRev1" class="planner-input" value="45" oninput="calcRevCascade('dt')"> hrs</div></div>
+                <div class="planner-row"><span>2nd Revision <span style="font-size: 0.7rem; color: var(--accent-purple);">(75%)</span></span><div><input type="number" id="dtRev2" class="planner-input" value="34" oninput="calcRevManual2('dt')"> hrs</div></div>
+                <div class="planner-row"><span>3rd Revision <span style="font-size: 0.7rem; color: var(--success);">(50%)</span></span><div><input type="number" id="dtRev3" class="planner-input" value="17"> hrs</div></div>
+            </div>
+
+            <div class="planner-subject-card" style="border-top-color: var(--accent-purple);">
+                <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: var(--accent-purple);">Indirect Tax</h3>
+                <div class="planner-row"><span>1st Revision</span><div><input type="number" id="idtRev1" class="planner-input" value="35" oninput="calcRevCascade('idt')"> hrs</div></div>
+                <div class="planner-row"><span>2nd Revision <span style="font-size: 0.7rem; color: var(--accent-purple);">(75%)</span></span><div><input type="number" id="idtRev2" class="planner-input" value="26" oninput="calcRevManual2('idt')"> hrs</div></div>
+                <div class="planner-row"><span>3rd Revision <span style="font-size: 0.7rem; color: var(--success);">(50%)</span></span><div><input type="number" id="idtRev3" class="planner-input" value="13"> hrs</div></div>
+            </div>
+
+            <button class="btn-primary" style="margin-top: 10px;" onclick="generatePlan()">Generate Schedule List ⚡</button>
+        </div>
+
+        <div id="step2" class="planner-step">
+            <div id="calendarOutput"></div>
+            <button class="btn-secondary" style="margin-top: 20px; width: 100%;" onclick="switchPlannerTab('step1', document.getElementById('tab-step1'))">← Back to Edit Hours</button>
+        </div>
+    </div>
+
+    <div id="progressView" class="view-section">
+        <div class="section-title">Study Log History</div>
+        
+        <div id="historyFeed"></div>
+
+        <div class="section-title" style="margin-top: 30px;">Data Management</div>
+        <div class="action-row">
+            <button class="btn-secondary" onclick="exportData()">📥 Export Backup</button>
+            <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">📤 Restore Backup</button>
+        </div>
+        <input type="file" id="fileInput" style="display: none;" accept=".json,application/json,text/plain,*/*" onchange="importData(event)">
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('dashboard', this)"><span class="nav-icon">📊</span>Dashboard</div>
+        <div class="nav-item" onclick="switchTab('planner', this)"><span class="nav-icon">📅</span>Planner</div>
+        <div class="nav-item" onclick="switchTab('progress', this)"><span class="nav-icon">📈</span>Progress</div>
+        <div class="nav-item"><span class="nav-icon">👤</span>Profile</div>
+    </div>
+
+    <script>
+        const caSyllabus = { "Adv. Accounts": ["AS & Framework", "Branch Accounting", "Cash Flow Statements", "Amalgamation", "Internal Reconstruction", "Consolidated Financial Statements", "General Revision"], "Law": ["Preliminary & Incorporation", "Prospectus & Allotment", "Share Capital & Debentures", "Acceptance of Deposits", "Registration of Charges", "Management & Administration (Meetings)", "Declaration of Dividend", "Accounts of Companies", "Audit and Auditors", "LLP Act", "General Clauses Act", "Interpretation of Statutes"], "Direct Tax": ["Basic Concepts", "Residence & Scope", "Salaries", "House Property", "PGBP", "Capital Gains", "Other Sources", "Clubbing of Income", "Set-off & Carry Forward", "Deductions", "TDS & TCS", "Filing of Return"], "Indirect Tax": ["GST Intro & Definitions", "Concept of Supply", "Charge of GST", "Exemptions", "Time of Supply", "Value of Supply", "Input Tax Credit (ITC)", "Registration", "Tax Invoice", "Payment of Tax", "Returns"] };
+        let timerInterval; let totalSeconds = 0; let isRunning = false;
+
+        window.onload = function() { 
+            loadChapters(); updateTodayTotalTime(); loadPlannerSettings(); 
+            document.querySelectorAll('#step1 input').forEach(inp => {
+                inp.addEventListener('input', savePlannerSettings);
+                inp.addEventListener('change', savePlannerSettings);
+            });
+        };
+
+        function savePlannerSettings() {
+            const settings = {
+                planStart: document.getElementById('planStart').value, planClassesEnd: document.getElementById('planClassesEnd').value,
+                advRev1: document.getElementById('advRev1').value, advRev2: document.getElementById('advRev2').value, advRev3: document.getElementById('advRev3').value,
+                lawRev1: document.getElementById('lawRev1').value, lawRev2: document.getElementById('lawRev2').value, lawRev3: document.getElementById('lawRev3').value,
+                dtRev1: document.getElementById('dtRev1').value, dtRev2: document.getElementById('dtRev2').value, dtRev3: document.getElementById('dtRev3').value,
+                idtRev1: document.getElementById('idtRev1').value, idtRev2: document.getElementById('idtRev2').value, idtRev3: document.getElementById('idtRev3').value
+            };
+            localStorage.setItem('studyTracker_planner_settings', JSON.stringify(settings));
+        }
+
+        function loadPlannerSettings() {
+            const saved = localStorage.getItem('studyTracker_planner_settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                if(settings.planStart) document.getElementById('planStart').value = settings.planStart;
+                if(settings.planClassesEnd) document.getElementById('planClassesEnd').value = settings.planClassesEnd;
+                const fields = ['advRev1', 'advRev2', 'advRev3', 'lawRev1', 'lawRev2', 'lawRev3', 'dtRev1', 'dtRev2', 'dtRev3', 'idtRev1', 'idtRev2', 'idtRev3'];
+                fields.forEach(f => { if(settings[f]) document.getElementById(f).value = settings[f]; });
+            } else { document.getElementById('planStart').valueAsDate = new Date(); }
+        }
+
+        function switchTab(tabId, element) { document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(tabId + 'View').classList.add('active'); if (tabId === 'progress') renderHistoryLogs(); element.classList.add('active'); }
+        function switchPlannerTab(stepId, element) { document.querySelectorAll('.planner-step').forEach(step => step.classList.remove('active')); document.querySelectorAll('.planner-tab').forEach(tab => tab.classList.remove('active')); document.getElementById(stepId).classList.add('active'); element.classList.add('active'); }
+
+        function calcRevCascade(subj) { let r1 = parseFloat(document.getElementById(subj + 'Rev1').value) || 0; let r2 = Math.round(r1 * 0.75); let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev2').value = r2; document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
+        function calcRevManual2(subj) { let r2 = parseFloat(document.getElementById(subj + 'Rev2').value) || 0; let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
+
+        function generatePlan() {
+            const startStr = document.getElementById('planStart').value;
+            const classDL = document.getElementById('planClassesEnd').value;
+            if(!startStr || !classDL) { alert("Please set your Start Date and Class Deadline."); return; }
+
+            let currentDate = new Date(startStr);
+            const classEndDate = new Date(classDL);
+            const examDate = new Date(2026, 8, 1); 
+            const preExamStartDate = new Date(2026, 7, 27); 
+
+            if(currentDate > classEndDate || classEndDate >= preExamStartDate) { alert("Invalid Dates. Classes must finish before Aug 27, 2026."); return; }
+
+            const hr1_aa = parseFloat(document.getElementById('advRev1').value)||0; const hr1_law = parseFloat(document.getElementById('lawRev1').value)||0; const hr1_dt = parseFloat(document.getElementById('dtRev1').value)||0; const hr1_idt = parseFloat(document.getElementById('idtRev1').value)||0;
+            const t1 = hr1_aa + hr1_law + hr1_dt + hr1_idt;
+
+            const hr2_aa = parseFloat(document.getElementById('advRev2').value)||0; const hr2_law = parseFloat(document.getElementById('lawRev2').value)||0; const hr2_dt = parseFloat(document.getElementById('dtRev2').value)||0; const hr2_idt = parseFloat(document.getElementById('idtRev2').value)||0;
+            const t2 = hr2_aa + hr2_law + hr2_dt + hr2_idt;
+
+            const hr3_aa = parseFloat(document.getElementById('advRev3').value)||0; const hr3_law = parseFloat(document.getElementById('lawRev3').value)||0; const hr3_dt = parseFloat(document.getElementById('dtRev3').value)||0; const hr3_idt = parseFloat(document.getElementById('idtRev3').value)||0;
+            const t3 = hr3_aa + hr3_law + hr3_dt + hr3_idt;
+
+            const revisionDays = Math.round((preExamStartDate - classEndDate) / (1000 * 60 * 60 * 24)) - 1;
+            const grandTotal = t1 + t2 + t3;
+
+            let r1Days = Math.round(revisionDays * (t1 / grandTotal)); let r2Days = Math.round(revisionDays * (t2 / grandTotal)); let r3Days = revisionDays - r1Days - r2Days;
+            if(r1Days === 0 && t1 > 0) { r1Days = 1; r3Days--; } if(r2Days === 0 && t2 > 0) { r2Days = 1; r3Days--; }
+
+            let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SLOT</th><th>PHASE</th><th>SUBJECT</th><th>HOURS</th></tr></thead><tbody>`;
+
+            function printRow(d, slot, phase, badge, subj, hrs, noTopBorder = false) {
+                let dStr = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'});
+                let dPrint = noTopBorder ? `<td style="color: transparent; border-top: none;">${dStr}</td>` : `<td style="white-space: nowrap;">${dStr}</td>`;
+                tableHtml += `<tr>${dPrint}<td class="slot-text">${slot}</td><td><span class="${badge}">${phase}</span></td><td class="subj-text">${subj}</td><td class="hrs-text">${hrs}</td></tr>`;
+            }
+
+            while(currentDate <= classEndDate) { printRow(currentDate, "Full Day", "Classes", "badge-c", "Pending Lectures", "6.0 hrs"); currentDate.setDate(currentDate.getDate() + 1); }
+
+            let r1_aa_days = Math.round(r1Days * (hr1_aa / t1)); let r1_law_days = Math.round(r1Days * (hr1_law / t1)); let r1_dt_days = Math.round(r1Days * (hr1_dt / t1)); let r1_idt_days = r1Days - r1_aa_days - r1_law_days - r1_dt_days;
+            let hpd1_aa = (hr1_aa / (r1_aa_days||1) / 2).toFixed(1); let hpd1_law = (hr1_law / (r1_law_days||1) / 2).toFixed(1); let hpd1_dt = (hr1_dt / (r1_dt_days||1) / 2).toFixed(1); let hpd1_idt = (hr1_idt / (r1_idt_days||1) / 2).toFixed(1);
+
+            for(let i=0; i<r1_aa_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Adv. Accounts", `${hpd1_aa} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Adv. Accounts", `${hpd1_aa} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
+            for(let i=0; i<r1_law_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Law", `${hpd1_law} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Law", `${hpd1_law} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
+            for(let i=0; i<r1_dt_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Direct Tax", `${hpd1_dt} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Direct Tax", `${hpd1_dt} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
+            for(let i=0; i<r1_idt_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Indirect Tax", `${hpd1_idt} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Indirect Tax", `${hpd1_idt} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
+
+            let r2Subjects = [{ name: "Adv. Accounts", hrs: hr2_aa }, { name: "Direct Tax", hrs: hr2_dt }, { name: "Indirect Tax", hrs: hr2_idt }, { name: "Law", hrs: hr2_law }].filter(s => s.hrs > 0);
+            let slotHrsR2 = t2 / (r2Days * 2); let aM = r2Subjects.shift(); let aA = r2Subjects.shift() || aM; 
+
+            for(let i=0; i<r2Days; i++) {
+                if(aM) { printRow(currentDate, "Morning", "2nd Revision", "badge-r2", aM.name, `${slotHrsR2.toFixed(1)} hrs`); aM.hrs -= slotHrsR2; if(aM.hrs <= 0.1 && r2Subjects.length > 0) aM = r2Subjects.shift(); }
+                if(aA) { printRow(currentDate, "Afternoon", "2nd Revision", "badge-r2", aA.name, `${slotHrsR2.toFixed(1)} hrs`, true); aA.hrs -= slotHrsR2; if(aA.hrs <= 0.1 && r2Subjects.length > 0) aA = r2Subjects.shift(); }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            // Phase 4: 3rd Revision (Single Subject per day - Seq: DT -> IDT -> Law -> AA)
+            let r3_dt_days = Math.round(r3Days * (hr3_dt / t3)); let r3_idt_days = Math.round(r3Days * (hr3_idt / t3)); let r3_law_days = Math.round(r3Days * (hr3_law / t3)); let r3_aa_days = r3Days - r3_dt_days - r3_idt_days - r3_law_days;
+            let hpd3_dt = (hr3_dt / (r3_dt_days||1)).toFixed(1); let hpd3_idt = (hr3_idt / (r3_idt_days||1)).toFixed(1); let hpd3_law = (hr3_law / (r3_law_days||1)).toFixed(1); let hpd3_aa = (hr3_aa / (r3_aa_days||1)).toFixed(1);
+
+            for(let i=0; i<r3_dt_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Direct Tax", `${hpd3_dt} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
+            for(let i=0; i<r3_idt_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Indirect Tax", `${hpd3_idt} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
+            for(let i=0; i<r3_law_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Law", `${hpd3_law} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
+            for(let i=0; i<r3_aa_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Adv. Accounts", `${hpd3_aa} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
+
+            while(currentDate < examDate) { printRow(currentDate, "Full Day", "Pre-Exam", "badge-pre", "Adv. Accounts", "12.0 hrs"); currentDate.setDate(currentDate.getDate() + 1); }
+
+            let dStr = examDate.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'});
+            tableHtml += `<tr style="background: #F8FAFC;"><td style="white-space: nowrap; font-weight: bold;">${dStr}</td><td class="slot-text">Afternoon</td><td><span class="badge-exam">EXAM DAY</span></td><td class="subj-text" style="color: #1E3A8A;">Adv. Accounts</td><td class="hrs-text" style="color: #1E3A8A;">3.0 hrs</td></tr></tbody></table></div>`;
+            
+            document.getElementById('calendarOutput').innerHTML = tableHtml;
+            switchPlannerTab('step2', document.getElementById('tab-step2'));
+        }
+
+        function loadChapters() { let sub = document.getElementById('subjectSelect').value; let ch = document.getElementById('chapterInput'); ch.innerHTML = ''; caSyllabus[sub].forEach(c => { let o = document.createElement('option'); o.value = c; o.innerText = c; ch.appendChild(o); }); }
+        function updateDisplay() { const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0'); const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); const s = (totalSeconds % 60).toString().padStart(2, '0'); document.getElementById('timeDisplay').innerText = `${h}:${m}:${s}`; }
+        function startTimer() { if (isRunning) return; isRunning = true; document.getElementById('startBtn').style.display = 'none'; document.getElementById('stopBtn').style.display = 'block'; document.getElementById('subjectSelect').disabled = true; document.getElementById('chapterInput').disabled = true; timerInterval = setInterval(() => { totalSeconds++; updateDisplay(); }, 1000); }
+        function stopTimer() { isRunning = false; clearInterval(timerInterval); document.getElementById('startBtn').style.display = 'block'; document.getElementById('stopBtn').style.display = 'none'; document.getElementById('subjectSelect').disabled = false; document.getElementById('chapterInput').disabled = false; let sub = document.getElementById('subjectSelect').value; let chap = document.getElementById('chapterInput').value; let timeStr = document.getElementById('timeDisplay').innerText; let dateStr = new Date().toLocaleDateString('en-GB'); let ex = parseInt(localStorage.getItem('total_time_' + sub)) || 0; localStorage.setItem('total_time_' + sub, ex + totalSeconds); let sess = { date: dateStr, subject: sub, chapter: chap, duration: timeStr }; let hist = JSON.parse(localStorage.getItem('study_history')) || []; hist.unshift(sess); localStorage.setItem('study_history', JSON.stringify(hist)); totalSeconds = 0; updateDisplay(); updateTodayTotalTime(); }
+        function timeStringToSeconds(t) { let p = t.split(':'); return parseInt(p[0])*3600 + parseInt(p[1])*60 + parseInt(p[2]); }
+        function updateTodayTotalTime() { let hist = JSON.parse(localStorage.getItem('study_history')) || []; let today = new Date().toLocaleDateString('en-GB'); let sec = 0; hist.forEach(s => { if(s.date === today) sec += timeStringToSeconds(s.duration); }); document.getElementById('todayTotalTime').innerText = `${Math.floor(sec / 3600)}h ${Math.floor((sec % 3600) / 60)}m`; }
+        function renderHistoryLogs() { let hist = JSON.parse(localStorage.getItem('study_history')) || []; let feed = document.getElementById('historyFeed'); if (hist.length === 0) { feed.innerHTML = '<p style="color: #999; text-align: center; font-style: italic;">No study sessions recorded yet.</p>'; return; } let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SUBJECT</th><th>CHAPTER</th><th>DURATION</th></tr></thead><tbody>`; let lim = Math.min(hist.length, 50); let lastDate = ""; for(let i=0; i<lim; i++) { let s = hist[i]; let dateDisplay = s.date; try { let parts = s.date.split('/'); if(parts.length === 3) { let d = new Date(parts[2], parts[1] - 1, parts[0]); dateDisplay = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'}); } } catch(e) {} let isNewDate = (s.date !== lastDate); lastDate = s.date; let dateCell = isNewDate ? `<span style="font-weight: bold; color: var(--primary); background: var(--primary-light); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem;">${dateDisplay}</span>` : ``; let topBorder = (isNewDate && i !== 0) ? `border-top: 2px solid var(--border-color);` : `border-top: 1px solid #f8fafc;`; if (i === 0) topBorder = `border-top: none;`; tableHtml += `<tr><td style="white-space: nowrap; ${topBorder}">${dateCell}</td><td class="subj-text" style="${topBorder}">${s.subject}</td><td class="slot-text" style="${topBorder}">${s.chapter}</td><td class="hrs-text" style="${topBorder}">${s.duration}</td></tr>`; } tableHtml += `</tbody></table></div>`; feed.innerHTML = tableHtml; }
+        function exportData() { let clean = {}; for (let i=0; i<localStorage.length; i++) { let k = localStorage.key(i); clean[k] = localStorage.getItem(k); } let a = document.createElement('a'); a.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clean))); a.setAttribute("download", "StudyTracker_Backup_" + new Date().toISOString().split('T')[0] + ".json"); document.body.appendChild(a); a.click(); a.remove(); }
+        function importData(e) { let f = e.target.files[0]; if (!f) return; let r = new FileReader(); r.onload = function(ev) { try { let d = JSON.parse(ev.target.result); for (let k in d) { if(d.hasOwnProperty(k)) localStorage.setItem(k, d[k]); } document.getElementById('fileInput').value = ''; alert("Backup restored! Reloading..."); location.reload(); } catch(err) { alert("Error reading backup file."); } }; r.readAsText(f); }
+    </script>
+</body>
+</html>
