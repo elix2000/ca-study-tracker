@@ -6,27 +6,17 @@
     <title>StudyTracker - Study Analytics</title>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-light: #eff6ff;
-            --accent-purple: #8b5cf6;
-            --accent-light: #ddd6fe;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --success: #10b981;
-            --warning: #f59e0b;
+            --primary: #2563eb; --primary-light: #eff6ff; --accent-purple: #8b5cf6; --accent-light: #ddd6fe;
+            --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b;
+            --border-color: #e2e8f0; --success: #10b981; --warning: #f59e0b;
         }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0 15px 80px 15px; color: var(--text-main); }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0 15px 80px 15px; color: var(--text-main); }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
         .header-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px;}
         .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; }
 
         .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; }
         .stat-value { font-size: 1.4rem; font-weight: bold; margin-bottom: 4px; }
@@ -42,7 +32,6 @@
         .btn-primary { background: var(--primary); color: white; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; width: 100%; cursor: pointer; }
         .btn-stop { background: #ef4444; color: white; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; width: 100%; display: none; }
         .btn-secondary { flex: 1; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; }
-
         .action-row { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0 15px 0; z-index: 1000; }
@@ -67,7 +56,7 @@
 
         .table-container { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); }
         .plan-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
-        .plan-table th { padding: 12px 10px; background: var(--bg-color); border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .plan-table th { padding: 12px 10px; background: var(--bg-color); border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; }
         .plan-table td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         .plan-table tr:last-child td { border-bottom: none; }
         .slot-text { color: var(--text-muted); font-size: 0.8rem; }
@@ -100,12 +89,7 @@
         <div class="card timer-card">
             <div class="timer-badge">● ACTIVE SESSION</div>
             <div class="inputs-container">
-                <select id="subjectSelect" class="input-field" onchange="loadChapters()">
-                    <option value="Adv. Accounts">Adv. Accounts</option>
-                    <option value="Law">Law</option>
-                    <option value="Direct Tax">Direct Tax</option>
-                    <option value="Indirect Tax">Indirect Tax</option>
-                </select>
+                <select id="subjectSelect" class="input-field" onchange="loadChapters()"></select>
                 <select id="chapterInput" class="input-field"></select>
             </div>
             <div class="timer-display" id="timeDisplay">00:00:00</div>
@@ -177,7 +161,6 @@
 
     <div id="progressView" class="view-section">
         <div class="section-title">Study Log History</div>
-        
         <div id="historyFeed"></div>
 
         <div class="section-title" style="margin-top: 30px;">Data Management</div>
@@ -196,10 +179,18 @@
     </div>
 
     <script>
-        const caSyllabus = { "Adv. Accounts": ["AS & Framework", "Branch Accounting", "Cash Flow Statements", "Amalgamation", "Internal Reconstruction", "Consolidated Financial Statements", "General Revision"], "Law": ["Preliminary & Incorporation", "Prospectus & Allotment", "Share Capital & Debentures", "Acceptance of Deposits", "Registration of Charges", "Management & Administration (Meetings)", "Declaration of Dividend", "Accounts of Companies", "Audit and Auditors", "LLP Act", "General Clauses Act", "Interpretation of Statutes"], "Direct Tax": ["Basic Concepts", "Residence & Scope", "Salaries", "House Property", "PGBP", "Capital Gains", "Other Sources", "Clubbing of Income", "Set-off & Carry Forward", "Deductions", "TDS & TCS", "Filing of Return"], "Indirect Tax": ["GST Intro & Definitions", "Concept of Supply", "Charge of GST", "Exemptions", "Time of Supply", "Value of Supply", "Input Tax Credit (ITC)", "Registration", "Tax Invoice", "Payment of Tax", "Returns"] };
+        const caSyllabus = { 
+            "Adv. Accounts": ["AS 1: Disclosure of Accounting Policies", "AS 2: Valuation of Inventories", "AS 3: Cash Flow Statements", "AS 4: Contingencies and Events After Balance Sheet Date", "AS 5: Net Profit/Loss, Prior Period Items & Policies", "AS 7: Construction Contracts", "AS 9: Revenue Recognition", "AS 10: Property, Plant and Equipment", "AS 11: Foreign Exchange Rates", "AS 12: Accounting for Government Grants", "AS 13: Accounting for Investments", "AS 14: Accounting for Amalgamations", "AS 15: Employee Benefits", "AS 16: Borrowing Costs", "AS 17: Segment Reporting", "AS 18: Related Party Disclosures", "AS 19: Leases", "AS 20: Earnings Per Share", "AS 21: Consolidated Financial Statements", "AS 22: Accounting for Taxes on Income", "AS 23: Investments in Associates", "AS 24: Discontinuing Operations", "AS 25: Interim Financial Reporting", "AS 27: Financial Reporting of Joint Ventures", "AS 28: Impairment of Assets", "AS 29: Provisions & Contingencies", "Financial Statements of Companies", "Buyback of Securities", "Amalgamation of Companies", "Accounting for Reconstruction of Companies", "Accounting for Branches"], 
+            "Law": ["Preliminary", "Incorporation and Matters Incidental", "Prospectus and Allotment of Securities", "Share Capital and Debentures", "Acceptance of Deposits", "Registration of Charges", "Management and Administration", "Declaration and Payment of Dividends", "Accounts of Companies", "Audit and Auditors", "The LLP Act, 2008", "The General Clauses Act, 1897", "Interpretation of Statutes", "The Foreign Exchange Management Act, 1999"], 
+            "Direct Tax": ["Ch 1: Basic Concepts", "Ch 2: Residence and Scope of Total Income", "Ch 3: Salaries", "Ch 3: House Property", "Ch 3: PGBP", "Ch 3: Capital Gains", "Ch 3: Income from Other Sources", "Ch 4: Clubbing of Income", "Ch 5: Aggregation, Set-Off and Carry Forward", "Ch 6: Deductions (80C to 80U)", "Ch 7: Advance Tax, TDS, and TCS", "Ch 8: Filing of Return and Self-Assessment", "Ch 9: Income Tax Liability Computation"], 
+            "Indirect Tax": ["Ch 1: GST in India – An Introduction", "Ch 2: Supply under GST", "Ch 3: Charge of GST", "Ch 4: Place of Supply", "Ch 5: Exemptions from GST", "Ch 6: Time of Supply", "Ch 7: Value of Supply", "Ch 8: Input Tax Credit", "Ch 9: Registration", "Ch 10: Tax Invoice; Credit and Debit Notes", "Ch 11: Accounts and Records", "Ch 12: E-Way Bill", "Ch 13: Payment of Tax", "Ch 14: TDS and TCS under GST", "Ch 15: Returns"] 
+        };
+
         let timerInterval; let totalSeconds = 0; let isRunning = false;
 
         window.onload = function() { 
+            let subSel = document.getElementById('subjectSelect');
+            Object.keys(caSyllabus).forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
             loadChapters(); updateTodayTotalTime(); loadPlannerSettings(); 
             document.querySelectorAll('#step1 input').forEach(inp => {
                 inp.addEventListener('input', savePlannerSettings);
@@ -229,12 +220,26 @@
             } else { document.getElementById('planStart').valueAsDate = new Date(); }
         }
 
-        function switchTab(tabId, element) { document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(tabId + 'View').classList.add('active'); if (tabId === 'progress') renderHistoryLogs(); element.classList.add('active'); }
-        function switchPlannerTab(stepId, element) { document.querySelectorAll('.planner-step').forEach(step => step.classList.remove('active')); document.querySelectorAll('.planner-tab').forEach(tab => tab.classList.remove('active')); document.getElementById(stepId).classList.add('active'); element.classList.add('active'); }
+        // VISUAL TAB UPDATER FIX
+        function switchTab(tabId, element) { 
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); 
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+            document.getElementById(tabId + 'View').classList.add('active'); 
+            element.classList.add('active'); // Restored active class updater
+            if (tabId === 'progress') renderHistoryLogs(); 
+        }
+
+        function switchPlannerTab(stepId, element) { 
+            document.querySelectorAll('.planner-step').forEach(step => step.classList.remove('active')); 
+            document.querySelectorAll('.planner-tab').forEach(tab => tab.classList.remove('active')); 
+            document.getElementById(stepId).classList.add('active'); 
+            element.classList.add('active'); 
+        }
 
         function calcRevCascade(subj) { let r1 = parseFloat(document.getElementById(subj + 'Rev1').value) || 0; let r2 = Math.round(r1 * 0.75); let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev2').value = r2; document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
         function calcRevManual2(subj) { let r2 = parseFloat(document.getElementById(subj + 'Rev2').value) || 0; let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
 
+        // RESTORED FULL MATH ENGINE
         function generatePlan() {
             const startStr = document.getElementById('planStart').value;
             const classDL = document.getElementById('planClassesEnd').value;
@@ -289,7 +294,6 @@
                 currentDate.setDate(currentDate.getDate() + 1);
             }
 
-            // Phase 4: 3rd Revision (Single Subject per day - Seq: DT -> IDT -> Law -> AA)
             let r3_dt_days = Math.round(r3Days * (hr3_dt / t3)); let r3_idt_days = Math.round(r3Days * (hr3_idt / t3)); let r3_law_days = Math.round(r3Days * (hr3_law / t3)); let r3_aa_days = r3Days - r3_dt_days - r3_idt_days - r3_law_days;
             let hpd3_dt = (hr3_dt / (r3_dt_days||1)).toFixed(1); let hpd3_idt = (hr3_idt / (r3_idt_days||1)).toFixed(1); let hpd3_law = (hr3_law / (r3_law_days||1)).toFixed(1); let hpd3_aa = (hr3_aa / (r3_aa_days||1)).toFixed(1);
 
@@ -307,13 +311,26 @@
             switchPlannerTab('step2', document.getElementById('tab-step2'));
         }
 
+        // --- TRACKER ENGINE ---
         function loadChapters() { let sub = document.getElementById('subjectSelect').value; let ch = document.getElementById('chapterInput'); ch.innerHTML = ''; caSyllabus[sub].forEach(c => { let o = document.createElement('option'); o.value = c; o.innerText = c; ch.appendChild(o); }); }
         function updateDisplay() { const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0'); const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); const s = (totalSeconds % 60).toString().padStart(2, '0'); document.getElementById('timeDisplay').innerText = `${h}:${m}:${s}`; }
         function startTimer() { if (isRunning) return; isRunning = true; document.getElementById('startBtn').style.display = 'none'; document.getElementById('stopBtn').style.display = 'block'; document.getElementById('subjectSelect').disabled = true; document.getElementById('chapterInput').disabled = true; timerInterval = setInterval(() => { totalSeconds++; updateDisplay(); }, 1000); }
         function stopTimer() { isRunning = false; clearInterval(timerInterval); document.getElementById('startBtn').style.display = 'block'; document.getElementById('stopBtn').style.display = 'none'; document.getElementById('subjectSelect').disabled = false; document.getElementById('chapterInput').disabled = false; let sub = document.getElementById('subjectSelect').value; let chap = document.getElementById('chapterInput').value; let timeStr = document.getElementById('timeDisplay').innerText; let dateStr = new Date().toLocaleDateString('en-GB'); let ex = parseInt(localStorage.getItem('total_time_' + sub)) || 0; localStorage.setItem('total_time_' + sub, ex + totalSeconds); let sess = { date: dateStr, subject: sub, chapter: chap, duration: timeStr }; let hist = JSON.parse(localStorage.getItem('study_history')) || []; hist.unshift(sess); localStorage.setItem('study_history', JSON.stringify(hist)); totalSeconds = 0; updateDisplay(); updateTodayTotalTime(); }
         function timeStringToSeconds(t) { let p = t.split(':'); return parseInt(p[0])*3600 + parseInt(p[1])*60 + parseInt(p[2]); }
         function updateTodayTotalTime() { let hist = JSON.parse(localStorage.getItem('study_history')) || []; let today = new Date().toLocaleDateString('en-GB'); let sec = 0; hist.forEach(s => { if(s.date === today) sec += timeStringToSeconds(s.duration); }); document.getElementById('todayTotalTime').innerText = `${Math.floor(sec / 3600)}h ${Math.floor((sec % 3600) / 60)}m`; }
-        function renderHistoryLogs() { let hist = JSON.parse(localStorage.getItem('study_history')) || []; let feed = document.getElementById('historyFeed'); if (hist.length === 0) { feed.innerHTML = '<p style="color: #999; text-align: center; font-style: italic;">No study sessions recorded yet.</p>'; return; } let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SUBJECT</th><th>CHAPTER</th><th>DURATION</th></tr></thead><tbody>`; let lim = Math.min(hist.length, 50); let lastDate = ""; for(let i=0; i<lim; i++) { let s = hist[i]; let dateDisplay = s.date; try { let parts = s.date.split('/'); if(parts.length === 3) { let d = new Date(parts[2], parts[1] - 1, parts[0]); dateDisplay = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'}); } } catch(e) {} let isNewDate = (s.date !== lastDate); lastDate = s.date; let dateCell = isNewDate ? `<span style="font-weight: bold; color: var(--primary); background: var(--primary-light); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem;">${dateDisplay}</span>` : ``; let topBorder = (isNewDate && i !== 0) ? `border-top: 2px solid var(--border-color);` : `border-top: 1px solid #f8fafc;`; if (i === 0) topBorder = `border-top: none;`; tableHtml += `<tr><td style="white-space: nowrap; ${topBorder}">${dateCell}</td><td class="subj-text" style="${topBorder}">${s.subject}</td><td class="slot-text" style="${topBorder}">${s.chapter}</td><td class="hrs-text" style="${topBorder}">${s.duration}</td></tr>`; } tableHtml += `</tbody></table></div>`; feed.innerHTML = tableHtml; }
+        
+        function renderHistoryLogs() { 
+            let hist = JSON.parse(localStorage.getItem('study_history')) || []; let feed = document.getElementById('historyFeed'); 
+            if (hist.length === 0) { feed.innerHTML = '<p style="color: #999; text-align: center; font-style: italic;">No study sessions recorded yet.</p>'; return; } 
+            let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SUBJECT</th><th>CHAPTER</th><th>DURATION</th></tr></thead><tbody>`; let lim = Math.min(hist.length, 50); let lastDate = ""; 
+            for(let i=0; i<lim; i++) { 
+                let s = hist[i]; let dateDisplay = s.date; try { let parts = s.date.split('/'); if(parts.length === 3) { let d = new Date(parts[2], parts[1] - 1, parts[0]); dateDisplay = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'}); } } catch(e) {} 
+                let isNewDate = (s.date !== lastDate); lastDate = s.date; let dateCell = isNewDate ? `<span style="font-weight: bold; color: var(--primary); background: var(--primary-light); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem;">${dateDisplay}</span>` : ``; let topBorder = (isNewDate && i !== 0) ? `border-top: 2px solid var(--border-color);` : `border-top: 1px solid #f8fafc;`; if (i === 0) topBorder = `border-top: none;`; 
+                tableHtml += `<tr><td style="white-space: nowrap; ${topBorder}">${dateCell}</td><td class="subj-text" style="${topBorder}">${s.subject}</td><td class="slot-text" style="${topBorder}">${s.chapter}</td><td class="hrs-text" style="${topBorder}">${s.duration}</td></tr>`; 
+            } 
+            tableHtml += `</tbody></table></div>`; feed.innerHTML = tableHtml; 
+        }
+
         function exportData() { let clean = {}; for (let i=0; i<localStorage.length; i++) { let k = localStorage.key(i); clean[k] = localStorage.getItem(k); } let a = document.createElement('a'); a.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clean))); a.setAttribute("download", "StudyTracker_Backup_" + new Date().toISOString().split('T')[0] + ".json"); document.body.appendChild(a); a.click(); a.remove(); }
         function importData(e) { let f = e.target.files[0]; if (!f) return; let r = new FileReader(); r.onload = function(ev) { try { let d = JSON.parse(ev.target.result); for (let k in d) { if(d.hasOwnProperty(k)) localStorage.setItem(k, d[k]); } document.getElementById('fileInput').value = ''; alert("Backup restored! Reloading..."); location.reload(); } catch(err) { alert("Error reading backup file."); } }; r.readAsText(f); }
     </script>
