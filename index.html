@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CA Inter Dashboard</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f0f2f5; 
+            margin: 0; 
+            padding: 15px; 
+            color: #333; 
+            padding-bottom: 40px;
+        }
+        .header { text-align: center; margin-bottom: 20px; }
+        .dashboard-card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            margin-bottom: 15px; 
+        }
+        .timer-display { 
+            font-size: 3.5rem; 
+            font-weight: bold; 
+            text-align: center; 
+            margin: 15px 0; 
+            color: #4f46e5; 
+            font-variant-numeric: tabular-nums; 
+        }
+        .btn { 
+            width: 100%; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            transition: 0.2s;
+        }
+        .btn-start { background: #4f46e5; color: white; }
+        .btn-start:active { background: #3730a3; }
+        .btn-stop { background: #ef4444; color: white; display: none; }
+        
+        .btn-export { background: #10b981; color: white; margin-bottom: 10px; }
+        .btn-import { background: #64748b; color: white; }
+        .btn-export:active { background: #059669; }
+        .btn-import:active { background: #475569; }
+
+        .input-field { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: 1px solid #ccc; 
+            font-size: 1rem; 
+            margin-bottom: 10px; 
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        textarea.input-field {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-box { 
+            background: #f8fafc; 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-align: center; 
+            border: 1px solid #e2e8f0; 
+        }
+        .stat-box h3 { margin: 0 0 5px 0; font-size: 0.9rem; color: #64748b; }
+        .stat-box p { margin: 0; font-size: 1.3rem; font-weight: bold; color: #0f172a; }
+        
+        .log-entry { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .log-entry:last-child { border-bottom: none; }
+        .log-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 6px; }
+        .log-details { display: flex; justify-content: space-between; color: #666; font-size: 0.85rem; }
+        .tag { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+        
+        /* NEW: Styles for your study notes */
+        .note-text { 
+            background: #fef9c3; 
+            padding: 10px; 
+            border-radius: 6px; 
+            font-size: 0.9rem; 
+            color: #451a03; 
+            margin-top: 10px; 
+            border-left: 4px solid #facc15;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin: 0;">CA Inter Study Planner</h2>
+        <p style="color: #666; margin-top: 5px; font-size: 0.9rem;">Track your progress & take notes</p>
+    </div>
+
+    <div class="dashboard-card">
+        <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Active Session</h3>
+        
+        <select id="subjectSelect" class="input-field">
+            <option value="Adv. Accounts">Adv. Accounts</option>
+            <option value="Law">Law</option>
+            <option value="Direct Tax">Direct Tax</option>
+            <option value="Indirect Tax">Indirect Tax</option>
+        </select>
+        
+        <input type="text" id="chapterInput" class="input-field" placeholder="Enter Chapter (e.g., GST Intro)">
+        
+        <textarea id="noteInput" class="input-field" placeholder="Type your study summaries, key formulas, or doubts here..."></textarea>
+        
+        <div class="timer-display" id="timeDisplay">00:00:00</div>
+        
+        <button class="btn btn-start" id="startBtn" onclick="startTimer()">Start Timer</button>
+        <button class="btn btn-stop" id="stopBtn" onclick="stopTimer()">End Session & Save Data</button>
+    </div>
+
+    <div class="dashboard-card">
+        <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Total Hours Allocated</h3>
+        <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div class="dashboard-card">
+        <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">Recent Study Log & Notes</h3>
+        <div id="historyFeed">
+            <p style="color: #999; text-align: center; font-style: italic;">No sessions recorded yet.</p>
+        </div>
+    </div>
+
+    <div class="dashboard-card" style="border: 2px solid #e2e8f0;">
+        <h3 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #0f172a;">Data Security</h3>
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Export your data once a week so you never lose your progress.</p>
+        
+        <button class="btn btn-export" onclick="exportData()">📥 Export Backup File</button>
+        
+        <input type="file" id="fileInput" style="display: none;" accept=".json,application/json,text/plain,*/*" onchange="importData(event)">
+        <button class="btn btn-import" onclick="document.getElementById('fileInput').click()">📤 Restore from Backup</button>
+    </div>
+
+    <script>
+        let timerInterval;
+        let totalSeconds = 0;
+        let isRunning = false;
+
+        window.onload = function() {
+            updateStatsDisplay();
+            updateHistoryDisplay();
+        };
+
+        function updateDisplay() {
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timeDisplay').innerText = `${h}:${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'block';
+            document.getElementById('subjectSelect').disabled = true;
+            document.getElementById('chapterInput').disabled = true;
+            document.getElementById('noteInput').disabled = true;
+            
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                updateDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            
+            document.getElementById('startBtn').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('subjectSelect').disabled = false;
+            document.getElementById('chapterInput').disabled = false;
+            document.getElementById('noteInput').disabled = false;
+
+            let subject = document.getElementById('subjectSelect').value;
+            let chapter = document.getElementById('chapterInput').value || "General Revision";
+            let studyNote = document.getElementById('noteInput').value; // Capture the note
+            let timeString = document.getElementById('timeDisplay').innerText;
+            let dateString = new Date().toLocaleDateString('en-GB'); 
+            
+            let existingSeconds = parseInt(localStorage.getItem('total_time_' + subject)) || 0;
+            localStorage.setItem('total_time_' + subject, existingSeconds + totalSeconds);
+
+            // Add the note to the data package
+            let sessionData = {
+                date: dateString,
+                subject: subject,
+                chapter: chapter,
+                duration: timeString,
+                note: studyNote 
+            };
+            
+            let history = JSON.parse(localStorage.getItem('study_history')) || [];
+            history.unshift(sessionData); 
+            localStorage.setItem('study_history', JSON.stringify(history));
+
+            totalSeconds = 0;
+            updateDisplay();
+            updateStatsDisplay();
+            updateHistoryDisplay(); 
+            
+            // Clear inputs for the next session
+            document.getElementById('chapterInput').value = '';
+            document.getElementById('noteInput').value = '';
+        }
+
+        function updateStatsDisplay() {
+            const subjects = ["Adv. Accounts", "Law", "Direct Tax", "Indirect Tax"];
+            let gridHtml = '';
+            
+            subjects.forEach(sub => {
+                let totalSecs = parseInt(localStorage.getItem('total_time_' + sub)) || 0;
+                let hours = (totalSecs / 3600).toFixed(2); 
+                gridHtml += `
+                    <div class="stat-box">
+                        <h3>${sub}</h3>
+                        <p>${hours} hrs</p>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('statsGrid').innerHTML = gridHtml;
+        }
+
+        function updateHistoryDisplay() {
+            let history = JSON.parse(localStorage.getItem('study_history')) || [];
+            let feedDiv = document.getElementById('historyFeed');
+            
+            if (history.length === 0) {
+                feedDiv.innerHTML = '<p style="color: #999; text-align: center; font-style: italic;">No sessions recorded yet.</p>';
+                return;
+            }
+            
+            let feedHtml = '';
+            let displayLimit = Math.min(history.length, 15); 
+            
+            for(let i = 0; i < displayLimit; i++) {
+                let session = history[i];
+                
+                // NEW: Logic to render the note beautifully if one exists
+                let noteHtml = '';
+                if (session.note && session.note.trim() !== '') {
+                    noteHtml = `<div class="note-text">📝 ${session.note}</div>`;
+                }
+
+                feedHtml += `
+                    <div class="log-entry">
+                        <div class="log-header">
+                            <span>${session.chapter}</span>
+                            <span class="tag">${session.subject}</span>
+                        </div>
+                        <div class="log-details">
+                            <span>📅 ${session.date}</span>
+                            <span>⏱️ ${session.duration}</span>
+                        </div>
+                        ${noteHtml}
+                    </div>
+                `;
+            }
+            feedDiv.innerHTML = feedHtml;
+        }
+
+        function exportData() {
+            let cleanData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                cleanData[key] = localStorage.getItem(key);
+            }
+            
+            let backupData = JSON.stringify(cleanData);
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(backupData);
+            
+            let downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            let today = new Date().toISOString().split('T')[0];
+            downloadAnchorNode.setAttribute("download", "StudyTracker_Backup_" + today + ".json");
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importData(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let importedData = JSON.parse(e.target.result);
+                    
+                    for (let key in importedData) {
+                        if(importedData.hasOwnProperty(key)) {
+                            localStorage.setItem(key, importedData[key]);
+                        }
+                    }
+                    
+                    document.getElementById('fileInput').value = '';
+                    alert("Backup restored successfully! The app will now reload.");
+                    location.reload(); 
+                } catch(err) {
+                    alert("Error reading backup file. The file may be corrupted or in the wrong format. Error details: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
