@@ -3,106 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyTracker - CA Inter Planner</title>
+    <title>StudyTracker - CA Inter</title>
+    
+    <!-- App Icons and Theme -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#2563eb">
+
     <style>
-        :root {
-            --primary: #2563eb; --primary-light: #eff6ff; --accent-purple: #8b5cf6; --accent-light: #ddd6fe;
-            --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b;
-            --border-color: #e2e8f0; --success: #10b981; --warning: #f59e0b;
-        }
-
+        :root { --primary: #2563eb; --primary-light: #eff6ff; --accent-purple: #a78bfa; --accent-light: #ddd6fe; --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border-color: #e2e8f0; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0 15px 80px 15px; color: var(--text-main); }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
-        .header-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 8px;}
-        .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; }
-
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; }
+        .header-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px;}
+        .app-logo { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; margin-top: 15px; }
+        
         .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; }
         .stat-value { font-size: 1.4rem; font-weight: bold; margin-bottom: 4px; }
         .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .timer-card { border: 2px solid var(--accent-light); border-radius: 16px; text-align: center; position: relative;}
-        .timer-badge { background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: bold; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 15px;}
+        .timer-card { border: 2px solid var(--primary); border-radius: 16px; text-align: center; position: relative;}
+        .timer-badge { background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: bold; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 15px; text-transform: uppercase;}
         .timer-display { font-size: 3.5rem; font-family: monospace; font-weight: bold; color: var(--primary); margin: 10px 0; letter-spacing: -1px;}
         
         .inputs-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
         .input-field { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
         
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; width: 100%; cursor: pointer; }
-        .btn-stop { background: #ef4444; color: white; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; width: 100%; display: none; }
-        .btn-secondary { flex: 1; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; }
-        .action-row { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
-
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-primary { flex: 1; background: var(--primary); color: white; border: none; padding: 15px 0; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-pause { flex: 1; background: var(--warning); color: white; border: none; padding: 15px 0; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-resume { flex: 1; background: var(--success); color: white; border: none; padding: 15px 0; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-stop { flex: 1; background: var(--danger); color: white; border: none; padding: 15px 0; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-complete { flex: 1; background: var(--success); color: white; border: none; padding: 15px 0; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-secondary { width: 100%; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; margin-bottom: 10px;}
+        
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0 15px 0; z-index: 1000; }
         .nav-item { text-align: center; color: var(--text-muted); font-size: 0.75rem; flex: 1; cursor: pointer;}
-        .nav-item.active { color: var(--accent-purple); font-weight: bold; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
         .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 4px; }
         
-        .view-section { display: none; }
-        .view-section.active { display: block; }
-
+        .view-section { display: none; } .view-section.active { display: block; }
         .planner-nav { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
         .planner-tab { padding: 8px 16px; background: white; border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
         .planner-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .planner-step { display: none; }
-        .planner-step.active { display: block; }
+        .planner-step { display: none; } .planner-step.active { display: block; }
         
-        .date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .planner-subject-card { border: 1px solid var(--primary); border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white; border-top: 4px solid var(--primary); }
         .planner-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--border-color); }
         .planner-row:last-child { border-bottom: none; }
         .planner-input { width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; font-weight: bold; }
 
-        .table-container { width: 100%; overflow-x: auto; background: white; border-radius: 8px; border: 1px solid var(--border-color); }
+        .table-container { width: 100%; overflow-x: auto; background: white; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
         .plan-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
-        .plan-table th { padding: 12px 10px; background: var(--bg-color); border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; }
+        .plan-table th { padding: 12px 10px; background: var(--bg-color); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;}
         .plan-table td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
         .plan-table tr:last-child td { border-bottom: none; }
         .slot-text { color: var(--text-muted); font-size: 0.8rem; }
         .subj-text { font-weight: 600; color: var(--primary); font-size: 0.85rem; }
         .hrs-text { font-family: monospace; font-weight: bold; font-size: 0.9rem; }
         
-        .badge-c { background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
-        .badge-r1 { background: #EDE9FE; color: #4C1D95; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
-        .badge-r2 { background: #D1FAE5; color: #064E3B; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
-        .badge-r3 { background: #FCE7F3; color: #831843; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
-        .badge-pre { background: #FEE2E2; color: #991B1B; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
-        .badge-exam { background: #DBEAFE; color: #1E3A8A; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
+        /* Premium Matrix Styling */
+        .matrix-table th, .matrix-table td { text-align: center; padding: 12px 6px; }
+        .matrix-table th:first-child, .matrix-table td:first-child { text-align: left; padding-left: 15px; font-weight: bold; color: var(--text-main); }
+        .group-header { background: var(--primary-light) !important; color: var(--primary) !important; font-weight: bold !important; font-size: 0.75rem !important; }
+        .pend-val { background: #fee2e2; color: var(--danger); padding: 4px 10px; border-radius: 8px; font-weight: bold; display: inline-block; min-width: 15px;}
+        .comp-val { background: #d1fae5; color: var(--success); padding: 4px 10px; border-radius: 8px; font-weight: bold; display: inline-block; min-width: 15px;}
+        
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: bold; white-space: nowrap; display: inline-block;}
+        .badge-r1 { background: #EDE9FE; color: #4C1D95; }
+        .badge-r2 { background: #D1FAE5; color: #064E3B; }
+        .badge-r3 { background: #FCE7F3; color: #831843; }
+        .badge-pre { background: #FEE2E2; color: #991B1B; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap;}
+        .badge-exam { background: #DBEAFE; color: #1E3A8A; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; white-space: nowrap;}
+
+        .today-card { border-left: 4px solid var(--primary); background: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border-color);}
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="header-title">📊 StudyTracker</div>
+        <div class="header-title">
+            <img src="logo.png" alt="StudyTracker Logo" class="app-logo" onerror="this.style.display='none'">
+            StudyTracker
+        </div>
         <div style="font-size: 1.2rem;">📅</div>
     </div>
 
     <!-- VIEW 1: DASHBOARD -->
     <div id="dashboardView" class="view-section active">
+        
+        <div class="section-title" style="margin-top: 0;">Hourly Activity</div>
+        <div class="card">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                <select id="chartViewSelect" class="input-field" style="width:auto; padding:5px 10px; margin:0; font-weight:bold; background:var(--bg-color);" onchange="renderChart()">
+                    <option value="today">Today (Hourly)</option>
+                    <option value="weekly">Last 7 Days</option>
+                </select>
+            </div>
+            <div id="chartArea" style="height: 140px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 2px solid var(--border-color); padding-bottom: 2px;"></div>
+            <div id="chartLabels" style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.65rem; color: var(--text-muted);"></div>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-box"><div class="stat-value" id="daysLeft" style="color: var(--primary);">--</div><div class="stat-label">Days to Exam</div></div>
-            <div class="stat-box"><div class="stat-value">--</div><div class="stat-label">Best per day</div></div>
+            <div class="stat-box"><div class="stat-value" id="bestDay">0h 0m</div><div class="stat-label">Best Day</div></div>
             <div class="stat-box"><div class="stat-value" id="todayTotalTime">0h 0m</div><div class="stat-label">Today's Time</div></div>
-            <div class="stat-box"><div class="stat-value" style="color: var(--success);">--</div><div class="stat-label">Focus Score</div></div>
+            <div class="stat-box"><div class="stat-value" id="avgSession">0h 0m</div><div class="stat-label">Avg/Session</div></div>
         </div>
 
         <div class="card timer-card">
-            <div class="timer-badge">● ACTIVE SESSION</div>
-            <div class="inputs-container">
+            <div class="timer-badge" id="timerBadgeText">● IDLE</div>
+            <div class="inputs-container" id="timerInputs">
                 <select id="subjectSelect" class="input-field" onchange="loadChapters()"></select>
                 <select id="chapterInput" class="input-field"></select>
+                <select id="phaseInput" class="input-field">
+                    <option value="1st Revision">1st Revision</option>
+                    <option value="2nd Revision">2nd Revision</option>
+                    <option value="3rd Revision">3rd Revision</option>
+                </select>
             </div>
+            
             <div class="timer-display" id="timeDisplay">00:00:00</div>
-            <button class="btn-primary" id="startBtn" onclick="startTimer()">▶ Start</button>
-            <button class="btn-stop" id="stopBtn" onclick="stopTimer()">⏹ End Session & Save</button>
+
+            <div class="btn-row" id="startRow">
+                <button class="btn-primary" onclick="startTimer()">▶ Start Session</button>
+            </div>
+            
+            <div class="btn-row" id="runningRow" style="display:none;">
+                <button class="btn-pause" id="pauseBtn" onclick="pauseTimer()">⏸ Pause</button>
+                <button class="btn-resume" id="resumeBtn" onclick="resumeTimer()" style="display:none;">▶ Resume</button>
+            </div>
+
+            <div class="btn-row" id="saveRow" style="display:none; margin-top: 10px;">
+                <button class="btn-stop" onclick="stopTimer(false)">⏹ Save</button>
+                <button class="btn-complete" onclick="stopTimer(true)">✅ Save & Complete</button>
+            </div>
         </div>
+
+        <div class="section-title">Today's Log</div>
+        <div id="todayActivityArea"></div>
     </div>
 
     <!-- VIEW 2: PLANNER -->
     <div id="plannerView" class="view-section">
-        <div class="section-title">Exam Planner (Sept 2026)</div>
-        
+        <div class="section-title" style="margin-top: 0;">Exam Planner (Sept 2026)</div>
         <div class="planner-nav">
             <div class="planner-tab active" id="tab-step1" onclick="switchPlannerTab('step1', this)">1. Hours & Settings</div>
             <div class="planner-tab" id="tab-step2" onclick="switchPlannerTab('step2', this)">2. My Plan</div>
@@ -110,20 +158,12 @@
 
         <div id="step1" class="planner-step active">
             <div class="card">
-                <div class="date-grid">
-                    <div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px;">START DATE</div>
-                        <input type="date" id="planStart" class="input-field">
-                    </div>
-                    <div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px;">FINISH CLASSES BY</div>
-                        <input type="date" id="planClassesEnd" class="input-field" value="2026-07-15">
-                    </div>
-                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold; margin-bottom: 5px;">REVISION START DATE</div>
+                <input type="date" id="planStart" class="input-field" style="margin-bottom: 0;">
             </div>
-
-            <div class="section-title" style="margin-top: 20px;">Group 1 Subjects</div>
-
+            
+            <div class="section-title">Group 1 Subjects</div>
+            
             <div class="planner-subject-card">
                 <h3 style="margin: 0 0 10px 0; font-size: 1.1rem;">Adv. Accounts</h3>
                 <div class="planner-row"><span>1st Revision</span><div><input type="number" id="advRev1" class="planner-input" value="40" oninput="calcRevCascade('adv')"> hrs</div></div>
@@ -157,9 +197,7 @@
 
         <div id="step2" class="planner-step">
             <div id="calendarOutput">
-                <div style="text-align: center; padding: 30px; color: var(--text-muted); font-style: italic;">
-                    Your generated plan will appear here.
-                </div>
+                <div style="text-align: center; padding: 30px; color: var(--text-muted); font-style: italic;">Your generated plan will appear here.</div>
             </div>
             <button class="btn-secondary" style="margin-top: 20px; width: 100%;" onclick="switchPlannerTab('step1', document.getElementById('tab-step1'))">← Back to Edit Hours</button>
         </div>
@@ -167,15 +205,17 @@
 
     <!-- VIEW 3: PROGRESS -->
     <div id="progressView" class="view-section">
-        <div class="section-title">Study Log History</div>
+        <div class="section-title" style="margin-top: 0;">Revision Progress Dashboard</div>
+        <div id="revisionMatrixArea"></div>
+
+        <div class="section-title" style="margin-top: 30px;">Study Log History</div>
         <div id="historyFeed"></div>
 
         <div class="section-title" style="margin-top: 30px;">Data Management</div>
-        <div class="action-row">
-            <button class="btn-secondary" onclick="exportData()">📥 Export Backup</button>
-            <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">📤 Restore Backup</button>
-        </div>
+        <button class="btn-secondary" onclick="exportData()">📥 Export Backup Data</button>
+        <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">📤 Upload & Merge Backup</button>
         <input type="file" id="fileInput" style="display: none;" accept=".json,application/json,text/plain,*/*" onchange="importData(event)">
+        <p style="font-size:0.75rem; text-align:center; color:var(--text-muted); margin-top:10px;">Select the .json file from your Downloads folder.</p>
     </div>
 
     <div class="bottom-nav">
@@ -192,29 +232,29 @@
             "Direct Tax": ["Ch 1: Basic Concepts", "Ch 2: Residence and Scope of Total Income", "Ch 3: Salaries", "Ch 3: House Property", "Ch 3: PGBP", "Ch 3: Capital Gains", "Ch 3: Income from Other Sources", "Ch 4: Clubbing of Income", "Ch 5: Aggregation, Set-Off and Carry Forward", "Ch 6: Deductions (80C to 80U)", "Ch 7: Advance Tax, TDS, and TCS", "Ch 8: Filing of Return and Self-Assessment", "Ch 9: Income Tax Liability Computation"], 
             "Indirect Tax": ["Ch 1: GST in India – An Introduction", "Ch 2: Supply under GST", "Ch 3: Charge of GST", "Ch 4: Place of Supply", "Ch 5: Exemptions from GST", "Ch 6: Time of Supply", "Ch 7: Value of Supply", "Ch 8: Input Tax Credit", "Ch 9: Registration", "Ch 10: Tax Invoice; Credit and Debit Notes", "Ch 11: Accounts and Records", "Ch 12: E-Way Bill", "Ch 13: Payment of Tax", "Ch 14: TDS and TCS under GST", "Ch 15: Returns"] 
         };
+        const colors = { "Adv. Accounts": "var(--primary)", "Law": "var(--success)", "Direct Tax": "var(--warning)", "Indirect Tax": "var(--accent-purple)" };
 
         window.onload = function() { 
             let subSel = document.getElementById('subjectSelect');
             Object.keys(caSyllabus).forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
             loadChapters(); 
-            updateTodayTotalTime(); 
-            loadPlannerSettings(); 
+            initRevisionProgress();
             updateDaysLeft(); 
+            calculateDashboardStats();
+            renderTodayActivity();
+            renderChart();
             
             const savedPlan = localStorage.getItem('studyTracker_saved_plan');
-            if(savedPlan) {
-                document.getElementById('calendarOutput').innerHTML = savedPlan;
-            }
+            if(savedPlan) document.getElementById('calendarOutput').innerHTML = savedPlan;
+            loadPlannerSettings(); 
 
             document.querySelectorAll('#step1 input').forEach(inp => {
                 inp.addEventListener('input', savePlannerSettings);
-                inp.addEventListener('change', savePlannerSettings);
             });
         };
 
         function updateDaysLeft() {
-            const today = new Date();
-            today.setHours(0,0,0,0);
+            const today = new Date(); today.setHours(0,0,0,0);
             const examDate = new Date(2026, 8, 1); 
             const diffTime = examDate - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -223,7 +263,7 @@
 
         function savePlannerSettings() {
             const settings = {
-                planStart: document.getElementById('planStart').value, planClassesEnd: document.getElementById('planClassesEnd').value,
+                planStart: document.getElementById('planStart').value,
                 advRev1: document.getElementById('advRev1').value, advRev2: document.getElementById('advRev2').value, advRev3: document.getElementById('advRev3').value,
                 lawRev1: document.getElementById('lawRev1').value, lawRev2: document.getElementById('lawRev2').value, lawRev3: document.getElementById('lawRev3').value,
                 dtRev1: document.getElementById('dtRev1').value, dtRev2: document.getElementById('dtRev2').value, dtRev3: document.getElementById('dtRev3').value,
@@ -237,7 +277,6 @@
             if (saved) {
                 const settings = JSON.parse(saved);
                 if(settings.planStart) document.getElementById('planStart').value = settings.planStart;
-                if(settings.planClassesEnd) document.getElementById('planClassesEnd').value = settings.planClassesEnd;
                 const fields = ['advRev1', 'advRev2', 'advRev3', 'lawRev1', 'lawRev2', 'lawRev3', 'dtRev1', 'dtRev2', 'dtRev3', 'idtRev1', 'idtRev2', 'idtRev3'];
                 fields.forEach(f => { if(settings[f]) document.getElementById(f).value = settings[f]; });
             } else { document.getElementById('planStart').valueAsDate = new Date(); }
@@ -248,7 +287,72 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
             document.getElementById(tabId + 'View').classList.add('active'); 
             element.classList.add('active'); 
-            if (tabId === 'progress') renderHistoryLogs(); 
+            if (tabId === 'progress') { renderHistoryLogs(); renderRevisionDashboard(); }
+            if (tabId === 'dashboard') { renderTodayActivity(); calculateDashboardStats(); renderChart(); }
+        }
+
+        function calcRevCascade(subj) { let r1 = parseFloat(document.getElementById(subj + 'Rev1').value) || 0; let r2 = Math.round(r1 * 0.75); let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev2').value = r2; document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
+        function calcRevManual2(subj) { let r2 = parseFloat(document.getElementById(subj + 'Rev2').value) || 0; let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
+
+        // --- PURE REVISION PLANNER LOGIC ---
+        function generatePlan() {
+            const startStr = document.getElementById('planStart').value; 
+            if(!startStr) { alert("Please set your Start Date."); return; }
+
+            let currentDate = new Date(startStr);
+            currentDate.setHours(0,0,0,0);
+            const examDate = new Date(2026, 8, 1); 
+            const preExamStartDate = new Date(2026, 7, 27); 
+
+            if(currentDate >= preExamStartDate) { alert("Start date must be before Aug 27, 2026."); return; }
+
+            const v = (id) => parseFloat(document.getElementById(id).value)||0;
+            const hr1_aa=v('advRev1'), hr1_law=v('lawRev1'), hr1_dt=v('dtRev1'), hr1_idt=v('idtRev1'); const t1 = hr1_aa+hr1_law+hr1_dt+hr1_idt;
+            const hr2_aa=v('advRev2'), hr2_law=v('lawRev2'), hr2_dt=v('dtRev2'), hr2_idt=v('idtRev2'); const t2 = hr2_aa+hr2_law+hr2_dt+hr2_idt;
+            const hr3_aa=v('advRev3'), hr3_law=v('lawRev3'), hr3_dt=v('dtRev3'), hr3_idt=v('idtRev3'); const t3 = hr3_aa+hr3_law+hr3_dt+hr3_idt;
+
+            const revisionDays = Math.round((preExamStartDate - currentDate) / 86400000);
+            const grandTotal = t1 + t2 + t3;
+            if (grandTotal === 0) { alert("Please enter study hours for at least one subject to generate a plan."); return; }
+
+            let gt = grandTotal || 1; 
+            let r1Days = t1>0 ? Math.round(revisionDays * (t1/gt)) : 0; 
+            let r2Days = t2>0 ? Math.round(revisionDays * (t2/gt)) : 0; 
+            let r3Days = Math.max(0, revisionDays - r1Days - r2Days);
+            
+            if(r1Days === 0 && t1 > 0) { r1Days = 1; r3Days--; } 
+            if(r2Days === 0 && t2 > 0) { r2Days = 1; r3Days--; }
+
+            let html = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SLOT</th><th>PHASE</th><th>SUBJECT</th><th>HOURS</th></tr></thead><tbody>`;
+            function pRow(d, slot, phase, badge, subj, hrs, noTop) { let dStr = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'}); let dPrint = noTop ? `<td style="color: transparent; border-top: none;">${dStr}</td>` : `<td style="white-space: nowrap;">${dStr}</td>`; html += `<tr>${dPrint}<td class="slot-text">${slot}</td><td><span class="${badge}">${phase}</span></td><td class="subj-text">${subj}</td><td class="hrs-text">${hrs}</td></tr>`; }
+
+            // Phase 1
+            let d1_aa = t1>0 ? Math.round(r1Days*(hr1_aa/t1)) : 0; let d1_law = t1>0 ? Math.round(r1Days*(hr1_law/t1)) : 0; let d1_dt = t1>0 ? Math.round(r1Days*(hr1_dt/t1)) : 0; let d1_idt = Math.max(0, r1Days - d1_aa - d1_law - d1_dt);
+            const p1 = (days, hrs, sub) => { if(days<=0)return; let hpd = (hrs/days/2).toFixed(1); for(let i=0;i<days;i++){ pRow(currentDate,"Morning","1st Revision","badge-r1",sub,`${hpd} hrs`); pRow(currentDate,"Afternoon","1st Revision","badge-r1",sub,`${hpd} hrs`,true); currentDate.setDate(currentDate.getDate()+1); } };
+            p1(d1_aa, hr1_aa, "Adv. Accounts"); p1(d1_law, hr1_law, "Law"); p1(d1_dt, hr1_dt, "Direct Tax"); p1(d1_idt, hr1_idt, "Indirect Tax");
+
+            // Phase 2
+            let r2Subs = [{n:"Adv. Accounts",h:hr2_aa},{n:"Direct Tax",h:hr2_dt},{n:"Indirect Tax",h:hr2_idt},{n:"Law",h:hr2_law}].filter(s=>s.h>0);
+            let sHrsR2 = r2Days>0 ? t2/(r2Days*2) : 0; 
+            if(sHrsR2 > 0) {
+                let aM = r2Subs.shift(), aA = r2Subs.shift()||aM; 
+                for(let i=0; i<r2Days; i++) {
+                    if(aM){ pRow(currentDate,"Morning","2nd Revision","badge-r2",aM.n,`${sHrsR2.toFixed(1)} hrs`); aM.h-=sHrsR2; if(aM.h<=0.1&&r2Subs.length>0) aM=r2Subs.shift(); }
+                    if(aA){ pRow(currentDate,"Afternoon","2nd Revision","badge-r2",aA.n,`${sHrsR2.toFixed(1)} hrs`,true); aA.h-=sHrsR2; if(aA.h<=0.1&&r2Subs.length>0) aA=r2Subs.shift(); }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            } else { currentDate.setDate(currentDate.getDate() + r2Days); }
+
+            // Phase 3
+            let d3_dt = t3>0 ? Math.round(r3Days*(hr3_dt/t3)) : 0; let d3_idt = t3>0 ? Math.round(r3Days*(hr3_idt/t3)) : 0; let d3_law = t3>0 ? Math.round(r3Days*(hr3_law/t3)) : 0; let d3_aa = Math.max(0, r3Days - d3_dt - d3_idt - d3_law);
+            const p3 = (days, hrs, sub) => { if(days<=0)return; let hpd = (hrs/days).toFixed(1); for(let i=0;i<days;i++){ pRow(currentDate,"Full Day","3rd Revision","badge-r3",sub,`${hpd} hrs`); currentDate.setDate(currentDate.getDate()+1); } };
+            p3(d3_dt, hr3_dt, "Direct Tax"); p3(d3_idt, hr3_idt, "Indirect Tax"); p3(d3_law, hr3_law, "Law"); p3(d3_aa, hr3_aa, "Adv. Accounts");
+
+            // Pre Exam
+            while(currentDate < examDate) { pRow(currentDate, "Full Day", "Pre-Exam", "badge-pre", "Adv. Accounts", "12.0 hrs"); currentDate.setDate(currentDate.getDate()+1); }
+            html += `<tr style="background: #F8FAFC;"><td style="white-space: nowrap; font-weight: bold;">${examDate.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</td><td class="slot-text">Afternoon</td><td><span class="badge-exam">EXAM DAY</span></td><td class="subj-text" style="color: #1E3A8A;">Adv. Accounts</td><td class="hrs-text" style="color: #1E3A8A;">3.0 hrs</td></tr></tbody></table></div>`;
+            
+            document.getElementById('calendarOutput').innerHTML = html; localStorage.setItem('studyTracker_saved_plan', html); switchPlannerTab('step2', document.getElementById('tab-step2'));
         }
 
         function switchPlannerTab(stepId, element) { 
@@ -258,153 +362,244 @@
             element.classList.add('active'); 
         }
 
-        function calcRevCascade(subj) { let r1 = parseFloat(document.getElementById(subj + 'Rev1').value) || 0; let r2 = Math.round(r1 * 0.75); let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev2').value = r2; document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
-        function calcRevManual2(subj) { let r2 = parseFloat(document.getElementById(subj + 'Rev2').value) || 0; let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
+        // --- DASHBOARD UI & CHARTS ---
+        function timeStringToSeconds(t) { if(!t) return 0; let p = t.split(':'); return parseInt(p[0])*3600 + parseInt(p[1])*60 + parseInt(p[2]); }
+        function secondsToTimeString(sec) { let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
 
-        function generatePlan() {
-            const startStr = document.getElementById('planStart').value;
-            const classDL = document.getElementById('planClassesEnd').value;
-            if(!startStr || !classDL) { alert("Please set your Start Date and Class Deadline."); return; }
-
-            let currentDate = new Date(startStr);
-            const classEndDate = new Date(classDL);
-            const examDate = new Date(2026, 8, 1); 
-            const preExamStartDate = new Date(2026, 7, 27); 
-
-            if(currentDate > classEndDate || classEndDate >= preExamStartDate) { alert("Invalid Dates. Classes must finish before Aug 27, 2026."); return; }
-
-            const hr1_aa = parseFloat(document.getElementById('advRev1').value)||0; const hr1_law = parseFloat(document.getElementById('lawRev1').value)||0; const hr1_dt = parseFloat(document.getElementById('dtRev1').value)||0; const hr1_idt = parseFloat(document.getElementById('idtRev1').value)||0;
-            const t1 = hr1_aa + hr1_law + hr1_dt + hr1_idt;
-
-            const hr2_aa = parseFloat(document.getElementById('advRev2').value)||0; const hr2_law = parseFloat(document.getElementById('lawRev2').value)||0; const hr2_dt = parseFloat(document.getElementById('dtRev2').value)||0; const hr2_idt = parseFloat(document.getElementById('idtRev2').value)||0;
-            const t2 = hr2_aa + hr2_law + hr2_dt + hr2_idt;
-
-            const hr3_aa = parseFloat(document.getElementById('advRev3').value)||0; const hr3_law = parseFloat(document.getElementById('lawRev3').value)||0; const hr3_dt = parseFloat(document.getElementById('dtRev3').value)||0; const hr3_idt = parseFloat(document.getElementById('idtRev3').value)||0;
-            const t3 = hr3_aa + hr3_law + hr3_dt + hr3_idt;
-
-            const revisionDays = Math.round((preExamStartDate - classEndDate) / (1000 * 60 * 60 * 24)) - 1;
-            const grandTotal = t1 + t2 + t3;
-
-            let r1Days = Math.round(revisionDays * (t1 / grandTotal)); let r2Days = Math.round(revisionDays * (t2 / grandTotal)); let r3Days = revisionDays - r1Days - r2Days;
-            if(r1Days === 0 && t1 > 0) { r1Days = 1; r3Days--; } if(r2Days === 0 && t2 > 0) { r2Days = 1; r3Days--; }
-
-            let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SLOT</th><th>PHASE</th><th>SUBJECT</th><th>HOURS</th></tr></thead><tbody>`;
-
-            function printRow(d, slot, phase, badge, subj, hrs, noTopBorder = false) {
-                let dStr = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'});
-                let dPrint = noTopBorder ? `<td style="color: transparent; border-top: none;">${dStr}</td>` : `<td style="white-space: nowrap;">${dStr}</td>`;
-                tableHtml += `<tr>${dPrint}<td class="slot-text">${slot}</td><td><span class="${badge}">${phase}</span></td><td class="subj-text">${subj}</td><td class="hrs-text">${hrs}</td></tr>`;
-            }
-
-            while(currentDate <= classEndDate) { printRow(currentDate, "Full Day", "Classes", "badge-c", "Pending Lectures", "6.0 hrs"); currentDate.setDate(currentDate.getDate() + 1); }
-
-            let r1_aa_days = Math.round(r1Days * (hr1_aa / t1)); let r1_law_days = Math.round(r1Days * (hr1_law / t1)); let r1_dt_days = Math.round(r1Days * (hr1_dt / t1)); let r1_idt_days = r1Days - r1_aa_days - r1_law_days - r1_dt_days;
-            let hpd1_aa = (hr1_aa / (r1_aa_days||1) / 2).toFixed(1); let hpd1_law = (hr1_law / (r1_law_days||1) / 2).toFixed(1); let hpd1_dt = (hr1_dt / (r1_dt_days||1) / 2).toFixed(1); let hpd1_idt = (hr1_idt / (r1_idt_days||1) / 2).toFixed(1);
-
-            for(let i=0; i<r1_aa_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Adv. Accounts", `${hpd1_aa} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Adv. Accounts", `${hpd1_aa} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
-            for(let i=0; i<r1_law_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Law", `${hpd1_law} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Law", `${hpd1_law} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
-            for(let i=0; i<r1_dt_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Direct Tax", `${hpd1_dt} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Direct Tax", `${hpd1_dt} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
-            for(let i=0; i<r1_idt_days; i++) { printRow(currentDate, "Morning", "1st Revision", "badge-r1", "Indirect Tax", `${hpd1_idt} hrs`); printRow(currentDate, "Afternoon", "1st Revision", "badge-r1", "Indirect Tax", `${hpd1_idt} hrs`, true); currentDate.setDate(currentDate.getDate() + 1); }
-
-            let r2Subjects = [{ name: "Adv. Accounts", hrs: hr2_aa }, { name: "Direct Tax", hrs: hr2_dt }, { name: "Indirect Tax", hrs: hr2_idt }, { name: "Law", hrs: hr2_law }].filter(s => s.hrs > 0);
-            let slotHrsR2 = t2 / (r2Days * 2); let aM = r2Subjects.shift(); let aA = r2Subjects.shift() || aM; 
-
-            for(let i=0; i<r2Days; i++) {
-                if(aM) { printRow(currentDate, "Morning", "2nd Revision", "badge-r2", aM.name, `${slotHrsR2.toFixed(1)} hrs`); aM.hrs -= slotHrsR2; if(aM.hrs <= 0.1 && r2Subjects.length > 0) aM = r2Subjects.shift(); }
-                if(aA) { printRow(currentDate, "Afternoon", "2nd Revision", "badge-r2", aA.name, `${slotHrsR2.toFixed(1)} hrs`, true); aA.hrs -= slotHrsR2; if(aA.hrs <= 0.1 && r2Subjects.length > 0) aA = r2Subjects.shift(); }
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-
-            let r3_dt_days = Math.round(r3Days * (hr3_dt / t3)); let r3_idt_days = Math.round(r3Days * (hr3_idt / t3)); let r3_law_days = Math.round(r3Days * (hr3_law / t3)); let r3_aa_days = r3Days - r3_dt_days - r3_idt_days - r3_law_days;
-            let hpd3_dt = (hr3_dt / (r3_dt_days||1)).toFixed(1); let hpd3_idt = (hr3_idt / (r3_idt_days||1)).toFixed(1); let hpd3_law = (hr3_law / (r3_law_days||1)).toFixed(1); let hpd3_aa = (hr3_aa / (r3_aa_days||1)).toFixed(1);
-
-            for(let i=0; i<r3_dt_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Direct Tax", `${hpd3_dt} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
-            for(let i=0; i<r3_idt_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Indirect Tax", `${hpd3_idt} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
-            for(let i=0; i<r3_law_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Law", `${hpd3_law} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
-            for(let i=0; i<r3_aa_days; i++) { printRow(currentDate, "Full Day", "3rd Revision", "badge-r3", "Adv. Accounts", `${hpd3_aa} hrs`); currentDate.setDate(currentDate.getDate() + 1); }
-
-            while(currentDate < examDate) { printRow(currentDate, "Full Day", "Pre-Exam", "badge-pre", "Adv. Accounts", "12.0 hrs"); currentDate.setDate(currentDate.getDate() + 1); }
-
-            let dStr = examDate.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'});
-            tableHtml += `<tr style="background: #F8FAFC;"><td style="white-space: nowrap; font-weight: bold;">${dStr}</td><td class="slot-text">Afternoon</td><td><span class="badge-exam">EXAM DAY</span></td><td class="subj-text" style="color: #1E3A8A;">Adv. Accounts</td><td class="hrs-text" style="color: #1E3A8A;">3.0 hrs</td></tr></tbody></table></div>`;
-            
-            document.getElementById('calendarOutput').innerHTML = tableHtml;
-            localStorage.setItem('studyTracker_saved_plan', tableHtml);
-            switchPlannerTab('step2', document.getElementById('tab-step2'));
+        function calculateDashboardStats() {
+            let hist = JSON.parse(localStorage.getItem('study_history')) || [];
+            let dateMap = {}; let totalSecs = 0;
+            hist.forEach(s => { let sec = timeStringToSeconds(s.duration); totalSecs += sec; dateMap[s.date] = (dateMap[s.date] || 0) + sec; });
+            let bestSecs = 0; for (let d in dateMap) { if(dateMap[d] > bestSecs) bestSecs = dateMap[d]; }
+            let avgSecs = Object.keys(dateMap).length > 0 ? (totalSecs / Object.keys(dateMap).length) : 0;
+            document.getElementById('bestDay').innerText = `${Math.floor(bestSecs/3600)}h ${Math.floor((bestSecs%3600)/60)}m`;
+            document.getElementById('avgSession').innerText = `${Math.floor(avgSecs/3600)}h ${Math.floor((avgSecs%3600)/60)}m`;
         }
 
         function loadChapters() { let sub = document.getElementById('subjectSelect').value; let ch = document.getElementById('chapterInput'); ch.innerHTML = ''; caSyllabus[sub].forEach(c => { let o = document.createElement('option'); o.value = c; o.innerText = c; ch.appendChild(o); }); }
+
+        function renderTodayActivity() {
+            let hist = JSON.parse(localStorage.getItem('study_history')) || []; let today = new Date().toLocaleDateString('en-GB'); 
+            let todayEntries = hist.filter(s => s.date === today); let area = document.getElementById('todayActivityArea'); let secTotal = 0;
+            if(todayEntries.length === 0) { area.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; font-style: italic; padding: 20px;">No sessions logged today yet.</div>'; } 
+            else {
+                let html = '';
+                todayEntries.forEach(s => {
+                    secTotal += timeStringToSeconds(s.duration); let color = colors[s.subject] || 'var(--primary)'; let badgeClass = s.phase.includes('1st') ? 'badge-r1' : s.phase.includes('2nd') ? 'badge-r2' : s.phase.includes('3rd') ? 'badge-r3' : 'badge-new';
+                    html += `<div class="today-card" style="border-left-color: ${color};"><div style="flex:1; padding-right:10px;"><div style="font-weight: bold; font-size: 1rem; color: var(--text-main);">${s.subject}</div><div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${s.chapter}</div></div><div style="text-align: right;"><div style="font-family: monospace; font-weight: bold; font-size: 1rem; color: ${color};">${s.duration}</div><span class="badge ${badgeClass}" style="margin-top: 5px;">${s.phase.replace(' Revision', ' Rev')}</span></div></div>`;
+                });
+                area.innerHTML = html;
+            }
+            document.getElementById('todayTotalTime').innerText = `${Math.floor(secTotal / 3600)}h ${Math.floor((secTotal % 3600) / 60)}m`; 
+        }
+
+        function renderChart() {
+            let view = document.getElementById('chartViewSelect').value; 
+            let hist = JSON.parse(localStorage.getItem('study_history')) || [];
+            let area = document.getElementById('chartArea'); let labelsArea = document.getElementById('chartLabels');
+            area.innerHTML = ''; labelsArea.innerHTML = '';
+
+            let data = []; let labels = []; let maxVal = 1; 
+
+            if (view === 'today') {
+                let today = new Date().toLocaleDateString('en-GB'); data = new Array(24).fill(0);
+                hist.forEach(s => { 
+                    if (s.date === today && s.timestamp) { 
+                        let endMs = s.timestamp;
+                        let durSec = timeStringToSeconds(s.duration);
+                        let startMs = endMs - (durSec * 1000);
+                        
+                        let curMs = startMs;
+                        while(curMs < endMs) {
+                            let hr = new Date(curMs).getHours();
+                            let dObj = new Date(curMs); dObj.setHours(hr + 1, 0, 0, 0); 
+                            let nextHourMs = dObj.getTime();
+                            let chunkMs = Math.min(nextHourMs, endMs) - curMs;
+                            data[hr] += chunkMs / 60000; // Exact minutes
+                            curMs += chunkMs;
+                        }
+                    } 
+                });
+                
+                let startHr = 6, endHr = 23; 
+                data = data.slice(startHr, endHr + 1); 
+                for(let i=startHr; i<=endHr; i++) labels.push(i);
+                maxVal = Math.max(...data, 60); 
+
+            } else {
+                data = new Array(7).fill(0); 
+                let now = new Date(); now.setHours(23,59,59,999);
+                for(let i=6; i>=0; i--) { labels.push(new Date(now - i*86400000).toLocaleDateString('en-US', {month:'short', day:'numeric'})); }
+                hist.forEach(s => { 
+                    if(s.timestamp) {
+                        let daysAgo = Math.floor((now - s.timestamp) / 86400000);
+                        if(daysAgo >= 0 && daysAgo < 7) { data[6 - daysAgo] += timeStringToSeconds(s.duration) / 60; } 
+                    }
+                });
+                maxVal = Math.max(...data, 1);
+            }
+
+            data.forEach((val, i) => {
+                let barWrapper = document.createElement('div');
+                barWrapper.style = "flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin:0 2px; height:100%;";
+
+                if(val > 0) {
+                    let label = document.createElement('div');
+                    label.style = "font-size:0.65rem; font-weight:bold; color:var(--text-main); margin-bottom:2px;";
+                    if (view === 'today') { label.innerText = Math.round(val) + 'm'; } 
+                    else { let h = Math.floor(val/60); let m = Math.round(val%60); label.innerText = (h>0 ? h+'h ' : '') + m + 'm'; }
+                    barWrapper.appendChild(label);
+
+                    let height = Math.max((val / maxVal) * 100, 2);
+                    let bar = document.createElement('div');
+                    bar.style = `width:100%; background:var(--accent-purple); height:${height}%; border-radius:4px 4px 0 0; opacity: 0.85; transition: 0.3s;`;
+                    barWrapper.appendChild(bar);
+                }
+                area.appendChild(barWrapper);
+            });
+
+            labels.forEach((l, i) => { 
+                let lbl = document.createElement('div'); 
+                lbl.innerText = l; 
+                if (view === 'today' && i % 2 !== 0) lbl.innerText = ''; // Avoid overlap
+                lbl.style = "flex:1; text-align:center;"; 
+                labelsArea.appendChild(lbl); 
+            });
+        }
+
+        // --- MATRIX PROGRESS ---
+        function initRevisionProgress() { let progress = JSON.parse(localStorage.getItem('studyTracker_revision_progress')); if(!progress) { progress = {}; Object.keys(caSyllabus).forEach(sub => { progress[sub] = { "1st Revision": [], "2nd Revision": [], "3rd Revision": [] }; }); localStorage.setItem('studyTracker_revision_progress', JSON.stringify(progress)); } }
+        function markChapterComplete(subject, chapter, phase) { let progress = JSON.parse(localStorage.getItem('studyTracker_revision_progress')); if(progress[subject] && progress[subject][phase] && !progress[subject][phase].includes(chapter)) { progress[subject][phase].push(chapter); localStorage.setItem('studyTracker_revision_progress', JSON.stringify(progress)); } }
         
-        // --- UPGRADED ABSOLUTE TIMESTAMP TIMER ---
-        let timerInterval; 
-        let sessionStartTime = 0; 
+        function renderRevisionDashboard() {
+            let progress = JSON.parse(localStorage.getItem('studyTracker_revision_progress')); if(!progress) return;
+            let html = `<div class="table-container" style="border-radius:12px; overflow:hidden;"><table class="plan-table matrix-table"><thead><tr><th rowspan="2" style="border-right: 1px solid var(--border-color); text-align:left; padding-left:15px;">Subject</th><th colspan="2" class="group-header" style="border-right: 1px solid white;">Rev 1</th><th colspan="2" class="group-header" style="border-right: 1px solid white;">Rev 2</th><th colspan="2" class="group-header">Rev 3</th></tr><tr><th style="font-size: 0.65rem;">Pend</th><th style="font-size: 0.65rem;">Comp</th><th style="font-size: 0.65rem;">Pend</th><th style="font-size: 0.65rem;">Comp</th><th style="font-size: 0.65rem;">Pend</th><th style="font-size: 0.65rem;">Comp</th></tr></thead><tbody>`;
+            Object.keys(caSyllabus).forEach(sub => {
+                let total = caSyllabus[sub].length;
+                let c1 = progress[sub] && progress[sub]["1st Revision"] ? progress[sub]["1st Revision"].length : 0; let p1 = total - c1;
+                let c2 = progress[sub] && progress[sub]["2nd Revision"] ? progress[sub]["2nd Revision"].length : 0; let p2 = total - c2;
+                let c3 = progress[sub] && progress[sub]["3rd Revision"] ? progress[sub]["3rd Revision"].length : 0; let p3 = total - c3;
+                html += `<tr><td style="border-right: 1px solid var(--border-color); font-size: 0.8rem; font-weight:bold;">${sub.replace('Adv. Accounts','Adv Acc').replace('Indirect Tax','IDT').replace('Direct Tax','DT')}</td>
+                    <td><span class="${p1>0?'pend-val':''}">${p1}</span></td><td style="border-right: 1px solid var(--border-color);"><span class="${c1>0?'comp-val':''}">${c1}</span></td>
+                    <td><span class="${p2>0?'pend-val':''}">${p2}</span></td><td style="border-right: 1px solid var(--border-color);"><span class="${c2>0?'comp-val':''}">${c2}</span></td>
+                    <td><span class="${p3>0?'pend-val':''}">${p3}</span></td><td><span class="${c3>0?'comp-val':''}">${c3}</span></td></tr>`;
+            });
+            html += `</tbody></table></div>`; document.getElementById('revisionMatrixArea').innerHTML = html;
+        }
+
+        // --- TIMER AND CONSOLIDATION ---
+        let timerState = 'IDLE'; let timerInterval; let sessionStartTime = 0; let accumulatedTime = 0;
+        function updateDisplay(totalSecs) { document.getElementById('timeDisplay').innerText = secondsToTimeString(totalSecs); }
 
         function startTimer() { 
-            document.getElementById('startBtn').style.display='none'; 
-            document.getElementById('stopBtn').style.display='block'; 
-            document.getElementById('subjectSelect').disabled = true; 
-            document.getElementById('chapterInput').disabled = true; 
-            
-            sessionStartTime = Date.now(); 
-
-            timerInterval = setInterval(() => { 
-                let elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
-                let h = Math.floor(elapsedSeconds / 3600);
-                let m = Math.floor((elapsedSeconds % 3600) / 60);
-                let s = elapsedSeconds % 60; 
-                document.getElementById('timeDisplay').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; 
-            }, 1000); 
+            timerState = 'RUNNING'; sessionStartTime = Date.now(); 
+            document.getElementById('timerBadgeText').innerText = "● RECORDING"; document.getElementById('timerBadgeText').style.color = "var(--success)";
+            document.getElementById('subjectSelect').disabled = true; document.getElementById('chapterInput').disabled = true; document.getElementById('phaseInput').disabled = true; 
+            document.getElementById('startRow').style.display = 'none'; document.getElementById('runningRow').style.display = 'flex'; document.getElementById('saveRow').style.display = 'flex';
+            document.getElementById('pauseBtn').style.display = 'block'; document.getElementById('resumeBtn').style.display = 'none';
+            timerInterval = setInterval(() => { updateDisplay(accumulatedTime + Math.floor((Date.now() - sessionStartTime) / 1000)); }, 1000); 
         }
 
-        function stopTimer() { 
-            clearInterval(timerInterval); 
-            let elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+        function pauseTimer() {
+            timerState = 'PAUSED'; clearInterval(timerInterval); accumulatedTime += Math.floor((Date.now() - sessionStartTime) / 1000);
+            document.getElementById('timerBadgeText').innerText = "⏸ PAUSED"; document.getElementById('timerBadgeText').style.color = "var(--warning)";
+            document.getElementById('pauseBtn').style.display = 'none'; document.getElementById('resumeBtn').style.display = 'block';
+        }
+
+        function resumeTimer() {
+            timerState = 'RUNNING'; sessionStartTime = Date.now();
+            document.getElementById('timerBadgeText').innerText = "● RECORDING"; document.getElementById('timerBadgeText').style.color = "var(--success)";
+            document.getElementById('resumeBtn').style.display = 'none'; document.getElementById('pauseBtn').style.display = 'block';
+            timerInterval = setInterval(() => { updateDisplay(accumulatedTime + Math.floor((Date.now() - sessionStartTime) / 1000)); }, 1000);
+        }
+
+        function stopTimer(isComplete) { 
+            if(timerState === 'RUNNING') { clearInterval(timerInterval); accumulatedTime += Math.floor((Date.now() - sessionStartTime) / 1000); }
+            let sub = document.getElementById('subjectSelect').value; let chap = document.getElementById('chapterInput').value; let phase = document.getElementById('phaseInput').value; let dateStr = new Date().toLocaleDateString('en-GB'); 
             
-            document.getElementById('startBtn').style.display='block'; 
-            document.getElementById('stopBtn').style.display='none'; 
-            document.getElementById('subjectSelect').disabled = false; 
-            document.getElementById('chapterInput').disabled = false; 
-            
-            let sub = document.getElementById('subjectSelect').value; 
-            let chap = document.getElementById('chapterInput').value; 
-            let timeStr = document.getElementById('timeDisplay').innerText; 
-            let dateStr = new Date().toLocaleDateString('en-GB'); 
-            
-            let ex = parseInt(localStorage.getItem('total_time_' + sub)) || 0; 
-            localStorage.setItem('total_time_' + sub, ex + elapsedSeconds); 
-            
-            let sess = { date: dateStr, subject: sub, chapter: chap, duration: timeStr }; 
+            if(isComplete) { markChapterComplete(sub, chap, phase); }
+
             let hist = JSON.parse(localStorage.getItem('study_history')) || []; 
-            hist.unshift(sess); 
+            // Consolidate purely based on Date, Subject, and Chapter
+            let existingIdx = hist.findIndex(s => s.date === dateStr && s.subject === sub && s.chapter === chap);
+            
+            if(existingIdx > -1) {
+                hist[existingIdx].duration = secondsToTimeString(timeStringToSeconds(hist[existingIdx].duration) + accumulatedTime);
+                hist[existingIdx].timestamp = Date.now(); 
+                // Append Phase if different
+                if (!hist[existingIdx].phase.includes(phase)) { hist[existingIdx].phase += ", " + phase; }
+            } else { 
+                hist.unshift({ date: dateStr, subject: sub, chapter: chap, phase: phase, duration: secondsToTimeString(accumulatedTime), timestamp: Date.now() }); 
+            }
             localStorage.setItem('study_history', JSON.stringify(hist)); 
             
-            location.reload(); 
+            accumulatedTime = 0; timerState = 'IDLE';
+            document.getElementById('timerBadgeText').innerText = "● IDLE"; document.getElementById('timerBadgeText').style.color = "var(--primary)";
+            
+            document.getElementById('startRow').style.display = 'flex'; document.getElementById('runningRow').style.display = 'none'; document.getElementById('saveRow').style.display = 'none';
+            document.getElementById('subjectSelect').disabled = false; document.getElementById('chapterInput').disabled = false; document.getElementById('phaseInput').disabled = false; 
+            
+            updateDisplay(0); renderTodayActivity(); calculateDashboardStats(); renderChart();
         }
 
-        function timeStringToSeconds(t) { let p = t.split(':'); return parseInt(p[0])*3600 + parseInt(p[1])*60 + parseInt(p[2]); }
-        
-        function updateTodayTotalTime() { 
-            let hist = JSON.parse(localStorage.getItem('study_history')) || []; 
-            let today = new Date().toLocaleDateString('en-GB'); 
-            let sec = 0; 
-            hist.forEach(s => { if(s.date === today) sec += timeStringToSeconds(s.duration); }); 
-            document.getElementById('todayTotalTime').innerText = `${Math.floor(sec / 3600)}h ${Math.floor((sec % 3600) / 60)}m`; 
-        }
-        
+        // --- DATA MANAGEMENT (IMPORT/EXPORT) ---
         function renderHistoryLogs() { 
             let hist = JSON.parse(localStorage.getItem('study_history')) || []; let feed = document.getElementById('historyFeed'); 
             if (hist.length === 0) { feed.innerHTML = '<p style="color: #999; text-align: center; font-style: italic;">No study sessions recorded yet.</p>'; return; } 
-            let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SUBJECT</th><th>CHAPTER</th><th>DURATION</th></tr></thead><tbody>`; let lim = Math.min(hist.length, 50); let lastDate = ""; 
+            let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SUBJECT</th><th>CHAPTER</th><th>DUR</th></tr></thead><tbody>`; let lim = Math.min(hist.length, 50); let lastDate = ""; 
             for(let i=0; i<lim; i++) { 
                 let s = hist[i]; let dateDisplay = s.date; try { let parts = s.date.split('/'); if(parts.length === 3) { let d = new Date(parts[2], parts[1] - 1, parts[0]); dateDisplay = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'}); } } catch(e) {} 
                 let isNewDate = (s.date !== lastDate); lastDate = s.date; let dateCell = isNewDate ? `<span style="font-weight: bold; color: var(--primary); background: var(--primary-light); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem;">${dateDisplay}</span>` : ``; let topBorder = (isNewDate && i !== 0) ? `border-top: 2px solid var(--border-color);` : `border-top: 1px solid #f8fafc;`; if (i === 0) topBorder = `border-top: none;`; 
-                tableHtml += `<tr><td style="white-space: nowrap; ${topBorder}">${dateCell}</td><td class="subj-text" style="${topBorder}">${s.subject}</td><td class="slot-text" style="${topBorder}">${s.chapter}</td><td class="hrs-text" style="${topBorder}">${s.duration}</td></tr>`; 
+                tableHtml += `<tr><td style="white-space: nowrap; ${topBorder}">${dateCell}</td><td class="subj-text" style="${topBorder}">${s.subject}</td><td class="slot-text" style="${topBorder}; font-size: 0.7rem;">${s.chapter}</td><td class="hrs-text" style="${topBorder}">${s.duration}</td></tr>`; 
             } 
             tableHtml += `</tbody></table></div>`; feed.innerHTML = tableHtml; 
         }
 
-        function exportData() { let clean = {}; for (let i=0; i<localStorage.length; i++) { let k = localStorage.key(i); clean[k] = localStorage.getItem(k); } let a = document.createElement('a'); a.setAttribute("href", "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clean))); a.setAttribute("download", "StudyTracker_Backup_" + new Date().toISOString().split('T')[0] + ".json"); document.body.appendChild(a); a.click(); a.remove(); }
-        function importData(e) { let f = e.target.files[0]; if (!f) return; let r = new FileReader(); r.onload = function(ev) { try { let d = JSON.parse(ev.target.result); for (let k in d) { if(d.hasOwnProperty(k)) localStorage.setItem(k, d[k]); } document.getElementById('fileInput').value = ''; alert("Backup restored! Reloading..."); location.reload(); } catch(err) { alert("Error reading backup file."); } }; r.readAsText(f); }
+        function exportData() { 
+            let c={}; 
+            for(let i=0;i<localStorage.length;i++){ let k=localStorage.key(i); c[k]=localStorage.getItem(k); } 
+            let a=document.createElement('a'); 
+            a.setAttribute("href","data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(c))); 
+            a.setAttribute("download","StudyTracker_Backup.json"); 
+            document.body.appendChild(a); a.click(); a.remove(); 
+        }
+        
+        function importData(e) { 
+            let f = e.target.files[0]; if(!f) return; 
+            let r = new FileReader(); 
+            r.onload = function(ev) { 
+                try { 
+                    let d = JSON.parse(ev.target.result); 
+                    
+                    let currentHist = JSON.parse(localStorage.getItem('study_history')) || []; 
+                    let importedHistStr = d['study_history'];
+                    let importedHist = [];
+                    if(importedHistStr) { importedHist = typeof importedHistStr === 'string' ? JSON.parse(importedHistStr) : importedHistStr; }
+                    
+                    let mergedHist = [...currentHist, ...importedHist];
+                    let uniqueHist = mergedHist.filter((v,i,a) => a.findIndex(t => (t.date===v.date && t.subject===v.subject && t.chapter===v.chapter && t.duration===v.duration))===i);
+                    localStorage.setItem('study_history', JSON.stringify(uniqueHist));
+                    
+                    let currentProg = JSON.parse(localStorage.getItem('studyTracker_revision_progress')) || {}; 
+                    let importedProgStr = d['studyTracker_revision_progress'];
+                    let importedProg = {};
+                    if(importedProgStr) { importedProg = typeof importedProgStr === 'string' ? JSON.parse(importedProgStr) : importedProgStr; }
+
+                    for(let sub in importedProg) { 
+                        if(!currentProg[sub]) currentProg[sub] = importedProg[sub]; 
+                        else { ['1st Revision','2nd Revision','3rd Revision'].forEach(phase => { if(importedProg[sub][phase]) currentProg[sub][phase] = [...new Set([...(currentProg[sub][phase]||[]), ...importedProg[sub][phase]])]; }); } 
+                    }
+                    localStorage.setItem('studyTracker_revision_progress', JSON.stringify(currentProg));
+
+                    if(d['studyTracker_planner_settings']) localStorage.setItem('studyTracker_planner_settings', typeof d['studyTracker_planner_settings'] === 'string' ? d['studyTracker_planner_settings'] : JSON.stringify(d['studyTracker_planner_settings']));
+                    if(d['studyTracker_saved_plan']) localStorage.setItem('studyTracker_saved_plan', d['studyTracker_saved_plan']);
+                    
+                    document.getElementById('fileInput').value = ''; // Reset input
+                    alert("Backup merged successfully!"); location.reload(); 
+                } catch(err) { alert("Error reading backup file. Make sure you selected the .json backup file."); } 
+            }; 
+            r.readAsText(f); 
+        }
     </script>
 </body>
 </html>
