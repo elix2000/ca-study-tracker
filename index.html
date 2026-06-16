@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudyTracker - CA Inter</title>
     
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -221,6 +222,15 @@
     </div>
 
     <script>
+        // --- SERVICE WORKER REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('App is offline ready!');
+                });
+            });
+        }
+
         const caSyllabus = { 
             "Adv. Accounts": ["AS 1: Disclosure of Accounting Policies", "AS 2: Valuation of Inventories", "AS 3: Cash Flow Statements", "AS 4: Contingencies and Events After Balance Sheet Date", "AS 5: Net Profit/Loss, Prior Period Items & Policies", "AS 7: Construction Contracts", "AS 9: Revenue Recognition", "AS 10: Property, Plant and Equipment", "AS 11: Foreign Exchange Rates", "AS 12: Accounting for Government Grants", "AS 13: Accounting for Investments", "AS 14: Accounting for Amalgamations", "AS 15: Employee Benefits", "AS 16: Borrowing Costs", "AS 17: Segment Reporting", "AS 18: Related Party Disclosures", "AS 19: Leases", "AS 20: Earnings Per Share", "AS 21: Consolidated Financial Statements", "AS 22: Accounting for Taxes on Income", "AS 23: Investments in Associates", "AS 24: Discontinuing Operations", "AS 25: Interim Financial Reporting", "AS 27: Financial Reporting of Joint Ventures", "AS 28: Impairment of Assets", "AS 29: Provisions & Contingencies", "Financial Statements of Companies", "Buyback of Securities", "Amalgamation of Companies", "Accounting for Reconstruction of Companies", "Accounting for Branches"], 
             "Law": ["Preliminary", "Incorporation and Matters Incidental", "Prospectus and Allotment of Securities", "Share Capital and Debentures", "Acceptance of Deposits", "Registration of Charges", "Management and Administration", "Declaration and Payment of Dividends", "Accounts of Companies", "Audit and Auditors", "The LLP Act, 2008", "The General Clauses Act, 1897", "Interpretation of Statutes", "The Foreign Exchange Management Act, 1999"], 
@@ -229,20 +239,16 @@
         };
         const colors = { "Adv. Accounts": "var(--primary)", "Law": "var(--success)", "Direct Tax": "var(--warning)", "Indirect Tax": "var(--accent-purple)" };
 
-        // --- RETROACTIVE DATA CLEANER (MIGRATION SCRIPT) ---
         function runDataMigration() {
             if (!localStorage.getItem('studyTracker_migrated_v25')) {
                 let hist = JSON.parse(localStorage.getItem('study_history')) || [];
-                let merged = {};
-                let hasChanges = false;
+                let merged = {}; let hasChanges = false;
                 
                 hist.forEach(s => {
                     let key = s.date + '|' + s.subject + '|' + s.chapter;
-                    if(!merged[key]) {
-                        merged[key] = {...s};
-                    } else {
-                        let dur1 = timeStringToSeconds(merged[key].duration);
-                        let dur2 = timeStringToSeconds(s.duration);
+                    if(!merged[key]) { merged[key] = {...s}; } 
+                    else {
+                        let dur1 = timeStringToSeconds(merged[key].duration); let dur2 = timeStringToSeconds(s.duration);
                         merged[key].duration = secondsToTimeString(dur1 + dur2);
                         if ((s.timestamp || 0) > (merged[key].timestamp || 0)) merged[key].timestamp = s.timestamp;
                         hasChanges = true;
@@ -258,31 +264,19 @@
         }
 
         window.onload = function() { 
-            runDataMigration(); // Instantly cleans old loose rows
+            runDataMigration();
+            let subSel = document.getElementById('subjectSelect'); Object.keys(caSyllabus).forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
+            loadChapters(); initRevisionProgress(); updateDaysLeft(); calculateDashboardStats(); renderTodayActivity(); renderChart();
             
-            let subSel = document.getElementById('subjectSelect');
-            Object.keys(caSyllabus).forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
-            loadChapters(); 
-            initRevisionProgress();
-            updateDaysLeft(); 
-            calculateDashboardStats();
-            renderTodayActivity();
-            renderChart();
-            
-            const savedPlan = localStorage.getItem('studyTracker_saved_plan');
-            if(savedPlan) document.getElementById('calendarOutput').innerHTML = savedPlan;
+            const savedPlan = localStorage.getItem('studyTracker_saved_plan'); if(savedPlan) document.getElementById('calendarOutput').innerHTML = savedPlan;
             loadPlannerSettings(); 
 
-            document.querySelectorAll('#step1 input').forEach(inp => {
-                inp.addEventListener('input', savePlannerSettings);
-            });
+            document.querySelectorAll('#step1 input').forEach(inp => { inp.addEventListener('input', savePlannerSettings); });
         };
 
         function updateDaysLeft() {
-            const today = new Date(); today.setHours(0,0,0,0);
-            const examDate = new Date(2026, 8, 1); 
-            const diffTime = examDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const today = new Date(); today.setHours(0,0,0,0); const examDate = new Date(2026, 8, 1); 
+            const diffTime = examDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             document.getElementById('daysLeft').innerText = diffDays > 0 ? diffDays : 0;
         }
 
@@ -310,8 +304,7 @@
         function switchTab(tabId, element) { 
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
-            document.getElementById(tabId + 'View').classList.add('active'); 
-            element.classList.add('active'); 
+            document.getElementById(tabId + 'View').classList.add('active'); element.classList.add('active'); 
             if (tabId === 'progress') { renderHistoryLogs(); renderRevisionDashboard(); }
             if (tabId === 'dashboard') { renderTodayActivity(); calculateDashboardStats(); renderChart(); }
         }
@@ -321,14 +314,9 @@
 
         // --- PURE REVISION PLANNER LOGIC ---
         function generatePlan() {
-            const startStr = document.getElementById('planStart').value; 
-            if(!startStr) { alert("Please set your Start Date."); return; }
-
-            let currentDate = new Date(startStr);
-            currentDate.setHours(0,0,0,0);
-            const examDate = new Date(2026, 8, 1); 
-            const preExamStartDate = new Date(2026, 7, 27); 
-
+            const startStr = document.getElementById('planStart').value; if(!startStr) { alert("Please set your Start Date."); return; }
+            let currentDate = new Date(startStr); currentDate.setHours(0,0,0,0);
+            const examDate = new Date(2026, 8, 1); const preExamStartDate = new Date(2026, 7, 27); 
             if(currentDate >= preExamStartDate) { alert("Start date must be before Aug 27, 2026."); return; }
 
             const v = (id) => parseFloat(document.getElementById(id).value)||0;
@@ -336,27 +324,20 @@
             const hr2_aa=v('advRev2'), hr2_law=v('lawRev2'), hr2_dt=v('dtRev2'), hr2_idt=v('idtRev2'); const t2 = hr2_aa+hr2_law+hr2_dt+hr2_idt;
             const hr3_aa=v('advRev3'), hr3_law=v('lawRev3'), hr3_dt=v('dtRev3'), hr3_idt=v('idtRev3'); const t3 = hr3_aa+hr3_law+hr3_dt+hr3_idt;
 
-            const revisionDays = Math.round((preExamStartDate - currentDate) / 86400000);
-            const grandTotal = t1 + t2 + t3;
+            const revisionDays = Math.round((preExamStartDate - currentDate) / 86400000); const grandTotal = t1 + t2 + t3;
             if (grandTotal === 0) { alert("Please enter study hours for at least one subject to generate a plan."); return; }
 
             let gt = grandTotal || 1; 
-            let r1Days = t1>0 ? Math.round(revisionDays * (t1/gt)) : 0; 
-            let r2Days = t2>0 ? Math.round(revisionDays * (t2/gt)) : 0; 
-            let r3Days = Math.max(0, revisionDays - r1Days - r2Days);
-            
-            if(r1Days === 0 && t1 > 0) { r1Days = 1; r3Days--; } 
-            if(r2Days === 0 && t2 > 0) { r2Days = 1; r3Days--; }
+            let r1Days = t1>0 ? Math.round(revisionDays * (t1/gt)) : 0; let r2Days = t2>0 ? Math.round(revisionDays * (t2/gt)) : 0; let r3Days = Math.max(0, revisionDays - r1Days - r2Days);
+            if(r1Days === 0 && t1 > 0) { r1Days = 1; r3Days--; } if(r2Days === 0 && t2 > 0) { r2Days = 1; r3Days--; }
 
             let html = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SLOT</th><th>PHASE</th><th>SUBJECT</th><th>HOURS</th></tr></thead><tbody>`;
             function pRow(d, slot, phase, badge, subj, hrs, noTop) { let dStr = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'}); let dPrint = noTop ? `<td style="color: transparent; border-top: none;">${dStr}</td>` : `<td style="white-space: nowrap;">${dStr}</td>`; html += `<tr>${dPrint}<td class="slot-text">${slot}</td><td><span class="${badge}">${phase}</span></td><td class="subj-text">${subj}</td><td class="hrs-text">${hrs}</td></tr>`; }
 
-            // Phase 1
             let d1_aa = t1>0 ? Math.round(r1Days*(hr1_aa/t1)) : 0; let d1_law = t1>0 ? Math.round(r1Days*(hr1_law/t1)) : 0; let d1_dt = t1>0 ? Math.round(r1Days*(hr1_dt/t1)) : 0; let d1_idt = Math.max(0, r1Days - d1_aa - d1_law - d1_dt);
             const p1 = (days, hrs, sub) => { if(days<=0)return; let hpd = (hrs/days/2).toFixed(1); for(let i=0;i<days;i++){ pRow(currentDate,"Morning","1st Revision","badge-r1",sub,`${hpd} hrs`); pRow(currentDate,"Afternoon","1st Revision","badge-r1",sub,`${hpd} hrs`,true); currentDate.setDate(currentDate.getDate()+1); } };
             p1(d1_aa, hr1_aa, "Adv. Accounts"); p1(d1_law, hr1_law, "Law"); p1(d1_dt, hr1_dt, "Direct Tax"); p1(d1_idt, hr1_idt, "Indirect Tax");
 
-            // Phase 2
             let r2Subs = [{n:"Adv. Accounts",h:hr2_aa},{n:"Direct Tax",h:hr2_dt},{n:"Indirect Tax",h:hr2_idt},{n:"Law",h:hr2_law}].filter(s=>s.h>0);
             let sHrsR2 = r2Days>0 ? t2/(r2Days*2) : 0; 
             if(sHrsR2 > 0) {
@@ -368,12 +349,10 @@
                 }
             } else { currentDate.setDate(currentDate.getDate() + r2Days); }
 
-            // Phase 3
             let d3_dt = t3>0 ? Math.round(r3Days*(hr3_dt/t3)) : 0; let d3_idt = t3>0 ? Math.round(r3Days*(hr3_idt/t3)) : 0; let d3_law = t3>0 ? Math.round(r3Days*(hr3_law/t3)) : 0; let d3_aa = Math.max(0, r3Days - d3_dt - d3_idt - d3_law);
             const p3 = (days, hrs, sub) => { if(days<=0)return; let hpd = (hrs/days).toFixed(1); for(let i=0;i<days;i++){ pRow(currentDate,"Full Day","3rd Revision","badge-r3",sub,`${hpd} hrs`); currentDate.setDate(currentDate.getDate()+1); } };
             p3(d3_dt, hr3_dt, "Direct Tax"); p3(d3_idt, hr3_idt, "Indirect Tax"); p3(d3_law, hr3_law, "Law"); p3(d3_aa, hr3_aa, "Adv. Accounts");
 
-            // Pre Exam
             while(currentDate < examDate) { pRow(currentDate, "Full Day", "Pre-Exam", "badge-pre", "Adv. Accounts", "12.0 hrs"); currentDate.setDate(currentDate.getDate()+1); }
             html += `<tr style="background: #F8FAFC;"><td style="white-space: nowrap; font-weight: bold;">${examDate.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</td><td class="slot-text">Afternoon</td><td><span class="badge-exam">EXAM DAY</span></td><td class="subj-text" style="color: #1E3A8A;">Adv. Accounts</td><td class="hrs-text" style="color: #1E3A8A;">3.0 hrs</td></tr></tbody></table></div>`;
             
@@ -383,8 +362,7 @@
         function switchPlannerTab(stepId, element) { 
             document.querySelectorAll('.planner-step').forEach(step => step.classList.remove('active')); 
             document.querySelectorAll('.planner-tab').forEach(tab => tab.classList.remove('active')); 
-            document.getElementById(stepId).classList.add('active'); 
-            element.classList.add('active'); 
+            document.getElementById(stepId).classList.add('active'); element.classList.add('active'); 
         }
 
         // --- DASHBOARD UI & CHARTS ---
@@ -430,30 +408,20 @@
                 let today = new Date().toLocaleDateString('en-GB'); data = new Array(24).fill(0);
                 hist.forEach(s => { 
                     if (s.date === today && s.timestamp) { 
-                        let endMs = s.timestamp;
-                        let durSec = timeStringToSeconds(s.duration);
-                        let startMs = endMs - (durSec * 1000);
-                        
+                        let endMs = s.timestamp; let durSec = timeStringToSeconds(s.duration); let startMs = endMs - (durSec * 1000);
                         let curMs = startMs;
                         while(curMs < endMs) {
-                            let hr = new Date(curMs).getHours();
-                            let dObj = new Date(curMs); dObj.setHours(hr + 1, 0, 0, 0); 
-                            let nextHourMs = dObj.getTime();
-                            let chunkMs = Math.min(nextHourMs, endMs) - curMs;
-                            data[hr] += chunkMs / 60000; // Exact minutes
-                            curMs += chunkMs;
+                            let hr = new Date(curMs).getHours(); let dObj = new Date(curMs); dObj.setHours(hr + 1, 0, 0, 0); 
+                            let nextHourMs = dObj.getTime(); let chunkMs = Math.min(nextHourMs, endMs) - curMs;
+                            data[hr] += chunkMs / 60000; curMs += chunkMs;
                         }
                     } 
                 });
                 
-                let startHr = 6, endHr = 23; 
-                data = data.slice(startHr, endHr + 1); 
-                for(let i=startHr; i<=endHr; i++) labels.push(i);
+                let startHr = 6, endHr = 23; data = data.slice(startHr, endHr + 1); for(let i=startHr; i<=endHr; i++) labels.push(i);
                 maxVal = Math.max(...data, 60); 
-
             } else {
-                data = new Array(7).fill(0); 
-                let now = new Date(); now.setHours(23,59,59,999);
+                data = new Array(7).fill(0); let now = new Date(); now.setHours(23,59,59,999);
                 for(let i=6; i>=0; i--) { labels.push(new Date(now - i*86400000).toLocaleDateString('en-US', {month:'short', day:'numeric'})); }
                 hist.forEach(s => { 
                     if(s.timestamp) {
@@ -469,14 +437,10 @@
                 barWrapper.style = "flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin:0 2px; height:100%;";
 
                 if(val > 0) {
-                    let label = document.createElement('div');
-                    label.style = "font-size:0.65rem; font-weight:bold; color:var(--text-main); margin-bottom:2px;";
-                    if (view === 'today') { label.innerText = Math.round(val) + 'm'; } 
-                    else { let h = Math.floor(val/60); let m = Math.round(val%60); label.innerText = (h>0 ? h+'h ' : '') + m + 'm'; }
+                    let label = document.createElement('div'); label.style = "font-size:0.65rem; font-weight:bold; color:var(--text-main); margin-bottom:2px;";
+                    if (view === 'today') { label.innerText = Math.round(val) + 'm'; } else { let h = Math.floor(val/60); let m = Math.round(val%60); label.innerText = (h>0 ? h+'h ' : '') + m + 'm'; }
                     barWrapper.appendChild(label);
-
-                    let height = Math.max((val / maxVal) * 100, 2);
-                    let bar = document.createElement('div');
+                    let height = Math.max((val / maxVal) * 100, 2); let bar = document.createElement('div');
                     bar.style = `width:100%; background:var(--accent-purple); height:${height}%; border-radius:4px 4px 0 0; opacity: 0.85; transition: 0.3s;`;
                     barWrapper.appendChild(bar);
                 }
@@ -484,11 +448,9 @@
             });
 
             labels.forEach((l, i) => { 
-                let lbl = document.createElement('div'); 
-                lbl.innerText = l; 
-                if (view === 'today' && i % 2 !== 0) lbl.innerText = ''; // Avoid overlap
-                lbl.style = "flex:1; text-align:center;"; 
-                labelsArea.appendChild(lbl); 
+                let lbl = document.createElement('div'); lbl.innerText = l; 
+                if (view === 'today' && i % 2 !== 0) lbl.innerText = ''; 
+                lbl.style = "flex:1; text-align:center;"; labelsArea.appendChild(lbl); 
             });
         }
 
@@ -594,20 +556,16 @@
                     let d = JSON.parse(ev.target.result); 
                     
                     let currentHist = JSON.parse(localStorage.getItem('study_history')) || []; 
-                    let importedHistStr = d['study_history'];
-                    let importedHist = [];
+                    let importedHistStr = d['study_history']; let importedHist = [];
                     if(importedHistStr) { importedHist = typeof importedHistStr === 'string' ? JSON.parse(importedHistStr) : importedHistStr; }
                     
-                    // Smart Merge logic to sum durations for matching elements
                     let mergedObj = {};
                     [...currentHist, ...importedHist].forEach(s => {
                         let key = s.date + '|' + s.subject + '|' + s.chapter;
-                        if(!mergedObj[key]) {
-                            mergedObj[key] = {...s};
-                        } else {
-                            let dur1 = timeStringToSeconds(mergedObj[key].duration);
-                            let dur2 = timeStringToSeconds(s.duration);
-                            if (dur2 > dur1) mergedObj[key].duration = s.duration; // take highest record to avoid double counting on re-import
+                        if(!mergedObj[key]) { mergedObj[key] = {...s}; } 
+                        else {
+                            let dur1 = timeStringToSeconds(mergedObj[key].duration); let dur2 = timeStringToSeconds(s.duration);
+                            if (dur2 > dur1) mergedObj[key].duration = s.duration; 
                             if ((s.timestamp || 0) > (mergedObj[key].timestamp || 0)) mergedObj[key].timestamp = s.timestamp;
                         }
                     });
@@ -616,8 +574,7 @@
                     localStorage.setItem('study_history', JSON.stringify(uniqueHist));
                     
                     let currentProg = JSON.parse(localStorage.getItem('studyTracker_revision_progress')) || {}; 
-                    let importedProgStr = d['studyTracker_revision_progress'];
-                    let importedProg = {};
+                    let importedProgStr = d['studyTracker_revision_progress']; let importedProg = {};
                     if(importedProgStr) { importedProg = typeof importedProgStr === 'string' ? JSON.parse(importedProgStr) : importedProgStr; }
 
                     for(let sub in importedProg) { 
@@ -629,7 +586,7 @@
                     if(d['studyTracker_planner_settings']) localStorage.setItem('studyTracker_planner_settings', typeof d['studyTracker_planner_settings'] === 'string' ? d['studyTracker_planner_settings'] : JSON.stringify(d['studyTracker_planner_settings']));
                     if(d['studyTracker_saved_plan']) localStorage.setItem('studyTracker_saved_plan', d['studyTracker_saved_plan']);
                     
-                    document.getElementById('fileInput').value = ''; // Reset input
+                    document.getElementById('fileInput').value = '';
                     alert("Backup merged successfully!"); location.reload(); 
                 } catch(err) { alert("Error reading backup file. Make sure you selected the .json backup file."); } 
             }; 
