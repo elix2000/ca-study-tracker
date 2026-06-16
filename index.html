@@ -92,8 +92,8 @@
         <div style="font-size: 1.2rem;">📅</div>
     </div>
 
+    <!-- VIEW 1: DASHBOARD -->
     <div id="dashboardView" class="view-section active">
-        
         <div class="section-title" style="margin-top: 0;">Hourly Activity</div>
         <div class="card">
             <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
@@ -146,6 +146,7 @@
         <div id="todayActivityArea"></div>
     </div>
 
+    <!-- VIEW 2: PLANNER -->
     <div id="plannerView" class="view-section">
         <div class="section-title" style="margin-top: 0;">Exam Planner (Sept 2026)</div>
         <div class="planner-nav">
@@ -200,6 +201,7 @@
         </div>
     </div>
 
+    <!-- VIEW 3: PROGRESS -->
     <div id="progressView" class="view-section">
         <div class="section-title" style="margin-top: 0;">Revision Progress Dashboard</div>
         <div id="revisionMatrixArea"></div>
@@ -208,6 +210,7 @@
         <div id="historyFeed"></div>
 
         <div class="section-title" style="margin-top: 30px;">Data Management</div>
+        <button class="btn-secondary" id="manualInstallBtn" style="display:none; background:var(--success); color:white; border:none;" onclick="triggerManualInstall()">📱 Install Mobile App Container</button>
         <button class="btn-secondary" onclick="exportData()">📥 Export Backup Data</button>
         <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">📤 Upload & Merge Backup</button>
         <input type="file" id="fileInput" style="display: none;" accept=".json,application/json,text/plain,*/*" onchange="importData(event)">
@@ -222,12 +225,27 @@
     </div>
 
     <script>
-        // --- SERVICE WORKER REGISTRATION ---
+        // --- SERVICE WORKER & MANUAL PWA LOGIC ---
+        let deferredPrompt;
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('App is offline ready!');
-                });
+                navigator.serviceWorker.register('sw.js').then(reg => { console.log('Offline Ready.'); });
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); deferredPrompt = e;
+            const manualBtn = document.getElementById('manualInstallBtn');
+            if (manualBtn) manualBtn.style.display = 'block'; // Shows manual button on Progress View
+        });
+
+        function triggerManualInstall() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choice) => {
+                if (choice.outcome === 'accepted') { console.log('User installed container.'); }
+                deferredPrompt = null;
+                document.getElementById('manualInstallBtn').style.display = 'none';
             });
         }
 
@@ -243,7 +261,6 @@
             if (!localStorage.getItem('studyTracker_migrated_v25')) {
                 let hist = JSON.parse(localStorage.getItem('study_history')) || [];
                 let merged = {}; let hasChanges = false;
-                
                 hist.forEach(s => {
                     let key = s.date + '|' + s.subject + '|' + s.chapter;
                     if(!merged[key]) { merged[key] = {...s}; } 
@@ -254,11 +271,7 @@
                         hasChanges = true;
                     }
                 });
-
-                if(hasChanges) {
-                    let newHist = Object.values(merged).sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
-                    localStorage.setItem('study_history', JSON.stringify(newHist));
-                }
+                if(hasChanges) { localStorage.setItem('study_history', JSON.stringify(Object.values(merged).sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0)))); }
                 localStorage.setItem('studyTracker_migrated_v25', 'true');
             }
         }
@@ -267,17 +280,14 @@
             runDataMigration();
             let subSel = document.getElementById('subjectSelect'); Object.keys(caSyllabus).forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
             loadChapters(); initRevisionProgress(); updateDaysLeft(); calculateDashboardStats(); renderTodayActivity(); renderChart();
-            
             const savedPlan = localStorage.getItem('studyTracker_saved_plan'); if(savedPlan) document.getElementById('calendarOutput').innerHTML = savedPlan;
             loadPlannerSettings(); 
-
             document.querySelectorAll('#step1 input').forEach(inp => { inp.addEventListener('input', savePlannerSettings); });
         };
 
         function updateDaysLeft() {
             const today = new Date(); today.setHours(0,0,0,0); const examDate = new Date(2026, 8, 1); 
-            const diffTime = examDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            document.getElementById('daysLeft').innerText = diffDays > 0 ? diffDays : 0;
+            document.getElementById('daysLeft').innerText = Math.max(0, Math.ceil((examDate - today) / (1000 * 60 * 60 * 24)));
         }
 
         function savePlannerSettings() {
@@ -294,16 +304,14 @@
         function loadPlannerSettings() {
             const saved = localStorage.getItem('studyTracker_planner_settings');
             if (saved) {
-                const settings = JSON.parse(saved);
-                if(settings.planStart) document.getElementById('planStart').value = settings.planStart;
+                const settings = JSON.parse(saved); if(settings.planStart) document.getElementById('planStart').value = settings.planStart;
                 const fields = ['advRev1', 'advRev2', 'advRev3', 'lawRev1', 'lawRev2', 'lawRev3', 'dtRev1', 'dtRev2', 'dtRev3', 'idtRev1', 'idtRev2', 'idtRev3'];
                 fields.forEach(f => { if(settings[f]) document.getElementById(f).value = settings[f]; });
             } else { document.getElementById('planStart').valueAsDate = new Date(); }
         }
 
         function switchTab(tabId, element) { 
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); 
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
             document.getElementById(tabId + 'View').classList.add('active'); element.classList.add('active'); 
             if (tabId === 'progress') { renderHistoryLogs(); renderRevisionDashboard(); }
             if (tabId === 'dashboard') { renderTodayActivity(); calculateDashboardStats(); renderChart(); }
@@ -312,11 +320,9 @@
         function calcRevCascade(subj) { let r1 = parseFloat(document.getElementById(subj + 'Rev1').value) || 0; let r2 = Math.round(r1 * 0.75); let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev2').value = r2; document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
         function calcRevManual2(subj) { let r2 = parseFloat(document.getElementById(subj + 'Rev2').value) || 0; let r3 = Math.round(r2 * 0.50); document.getElementById(subj + 'Rev3').value = r3; savePlannerSettings(); }
 
-        // --- PURE REVISION PLANNER LOGIC ---
         function generatePlan() {
             const startStr = document.getElementById('planStart').value; if(!startStr) { alert("Please set your Start Date."); return; }
-            let currentDate = new Date(startStr); currentDate.setHours(0,0,0,0);
-            const examDate = new Date(2026, 8, 1); const preExamStartDate = new Date(2026, 7, 27); 
+            let currentDate = new Date(startStr); currentDate.setHours(0,0,0,0); const examDate = new Date(2026, 8, 1); const preExamStartDate = new Date(2026, 7, 27); 
             if(currentDate >= preExamStartDate) { alert("Start date must be before Aug 27, 2026."); return; }
 
             const v = (id) => parseFloat(document.getElementById(id).value)||0;
@@ -325,7 +331,7 @@
             const hr3_aa=v('advRev3'), hr3_law=v('lawRev3'), hr3_dt=v('dtRev3'), hr3_idt=v('idtRev3'); const t3 = hr3_aa+hr3_law+hr3_dt+hr3_idt;
 
             const revisionDays = Math.round((preExamStartDate - currentDate) / 86400000); const grandTotal = t1 + t2 + t3;
-            if (grandTotal === 0) { alert("Please enter study hours for at least one subject to generate a plan."); return; }
+            if (grandTotal === 0) { alert("Please enter study hours."); return; }
 
             let gt = grandTotal || 1; 
             let r1Days = t1>0 ? Math.round(revisionDays * (t1/gt)) : 0; let r2Days = t2>0 ? Math.round(revisionDays * (t2/gt)) : 0; let r3Days = Math.max(0, revisionDays - r1Days - r2Days);
@@ -355,23 +361,15 @@
 
             while(currentDate < examDate) { pRow(currentDate, "Full Day", "Pre-Exam", "badge-pre", "Adv. Accounts", "12.0 hrs"); currentDate.setDate(currentDate.getDate()+1); }
             html += `<tr style="background: #F8FAFC;"><td style="white-space: nowrap; font-weight: bold;">${examDate.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</td><td class="slot-text">Afternoon</td><td><span class="badge-exam">EXAM DAY</span></td><td class="subj-text" style="color: #1E3A8A;">Adv. Accounts</td><td class="hrs-text" style="color: #1E3A8A;">3.0 hrs</td></tr></tbody></table></div>`;
-            
             document.getElementById('calendarOutput').innerHTML = html; localStorage.setItem('studyTracker_saved_plan', html); switchPlannerTab('step2', document.getElementById('tab-step2'));
         }
 
-        function switchPlannerTab(stepId, element) { 
-            document.querySelectorAll('.planner-step').forEach(step => step.classList.remove('active')); 
-            document.querySelectorAll('.planner-tab').forEach(tab => tab.classList.remove('active')); 
-            document.getElementById(stepId).classList.add('active'); element.classList.add('active'); 
-        }
-
-        // --- DASHBOARD UI & CHARTS ---
+        function switchPlannerTab(stepId, element) { document.querySelectorAll('.planner-step').forEach(step => step.classList.remove('active')); document.querySelectorAll('.planner-tab').forEach(tab => tab.classList.remove('active')); document.getElementById(stepId).classList.add('active'); element.classList.add('active'); }
         function timeStringToSeconds(t) { if(!t) return 0; let p = t.split(':'); return parseInt(p[0])*3600 + parseInt(p[1])*60 + parseInt(p[2]); }
         function secondsToTimeString(sec) { let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
 
         function calculateDashboardStats() {
-            let hist = JSON.parse(localStorage.getItem('study_history')) || [];
-            let dateMap = {}; let totalSecs = 0;
+            let hist = JSON.parse(localStorage.getItem('study_history')) || []; let dateMap = {}; let totalSecs = 0;
             hist.forEach(s => { let sec = timeStringToSeconds(s.duration); totalSecs += sec; dateMap[s.date] = (dateMap[s.date] || 0) + sec; });
             let bestSecs = 0; for (let d in dateMap) { if(dateMap[d] > bestSecs) bestSecs = dateMap[d]; }
             let avgSecs = Object.keys(dateMap).length > 0 ? (totalSecs / Object.keys(dateMap).length) : 0;
@@ -388,7 +386,7 @@
             else {
                 let html = '';
                 todayEntries.forEach(s => {
-                    secTotal += timeStringToSeconds(s.duration); let color = colors[s.subject] || 'var(--primary)'; let badgeClass = s.phase && s.phase.includes('1st') ? 'badge-r1' : s.phase && s.phase.includes('2nd') ? 'badge-r2' : s.phase && s.phase.includes('3rd') ? 'badge-r3' : 'badge-new';
+                    secTotal += timeStringToSeconds(s.duration); let color = colors[s.subject] || 'var(--primary)';
                     html += `<div class="today-card" style="border-left-color: ${color};"><div style="flex:1; padding-right:10px;"><div style="font-weight: bold; font-size: 1rem; color: var(--text-main);">${s.subject}</div><div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${s.chapter}</div></div><div style="text-align: right;"><div style="font-family: monospace; font-weight: bold; font-size: 1rem; color: ${color};">${s.duration}</div></div></div>`;
                 });
                 area.innerHTML = html;
@@ -397,19 +395,15 @@
         }
 
         function renderChart() {
-            let view = document.getElementById('chartViewSelect').value; 
-            let hist = JSON.parse(localStorage.getItem('study_history')) || [];
+            let view = document.getElementById('chartViewSelect').value; let hist = JSON.parse(localStorage.getItem('study_history')) || [];
             let area = document.getElementById('chartArea'); let labelsArea = document.getElementById('chartLabels');
-            area.innerHTML = ''; labelsArea.innerHTML = '';
-
-            let data = []; let labels = []; let maxVal = 1; 
+            area.innerHTML = ''; labelsArea.innerHTML = ''; let data = []; let labels = []; let maxVal = 1; 
 
             if (view === 'today') {
                 let today = new Date().toLocaleDateString('en-GB'); data = new Array(24).fill(0);
                 hist.forEach(s => { 
                     if (s.date === today && s.timestamp) { 
-                        let endMs = s.timestamp; let durSec = timeStringToSeconds(s.duration); let startMs = endMs - (durSec * 1000);
-                        let curMs = startMs;
+                        let endMs = s.timestamp; let durSec = timeStringToSeconds(s.duration); let startMs = endMs - (durSec * 1000); let curMs = startMs;
                         while(curMs < endMs) {
                             let hr = new Date(curMs).getHours(); let dObj = new Date(curMs); dObj.setHours(hr + 1, 0, 0, 0); 
                             let nextHourMs = dObj.getTime(); let chunkMs = Math.min(nextHourMs, endMs) - curMs;
@@ -417,25 +411,17 @@
                         }
                     } 
                 });
-                
                 let startHr = 6, endHr = 23; data = data.slice(startHr, endHr + 1); for(let i=startHr; i<=endHr; i++) labels.push(i);
                 maxVal = Math.max(...data, 60); 
             } else {
                 data = new Array(7).fill(0); let now = new Date(); now.setHours(23,59,59,999);
                 for(let i=6; i>=0; i--) { labels.push(new Date(now - i*86400000).toLocaleDateString('en-US', {month:'short', day:'numeric'})); }
-                hist.forEach(s => { 
-                    if(s.timestamp) {
-                        let daysAgo = Math.floor((now - s.timestamp) / 86400000);
-                        if(daysAgo >= 0 && daysAgo < 7) { data[6 - daysAgo] += timeStringToSeconds(s.duration) / 60; } 
-                    }
-                });
+                hist.forEach(s => { if(s.timestamp) { let daysAgo = Math.floor((now - s.timestamp) / 86400000); if(daysAgo >= 0 && daysAgo < 7) { data[6 - daysAgo] += timeStringToSeconds(s.duration) / 60; } } });
                 maxVal = Math.max(...data, 1);
             }
 
             data.forEach((val, i) => {
-                let barWrapper = document.createElement('div');
-                barWrapper.style = "flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin:0 2px; height:100%;";
-
+                let barWrapper = document.createElement('div'); barWrapper.style = "flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; margin:0 2px; height:100%;";
                 if(val > 0) {
                     let label = document.createElement('div'); label.style = "font-size:0.65rem; font-weight:bold; color:var(--text-main); margin-bottom:2px;";
                     if (view === 'today') { label.innerText = Math.round(val) + 'm'; } else { let h = Math.floor(val/60); let m = Math.round(val%60); label.innerText = (h>0 ? h+'h ' : '') + m + 'm'; }
@@ -447,14 +433,9 @@
                 area.appendChild(barWrapper);
             });
 
-            labels.forEach((l, i) => { 
-                let lbl = document.createElement('div'); lbl.innerText = l; 
-                if (view === 'today' && i % 2 !== 0) lbl.innerText = ''; 
-                lbl.style = "flex:1; text-align:center;"; labelsArea.appendChild(lbl); 
-            });
+            labels.forEach((l, i) => { let lbl = document.createElement('div'); lbl.innerText = l; if (view === 'today' && i % 2 !== 0) lbl.innerText = ''; lbl.style = "flex:1; text-align:center;"; labelsArea.appendChild(lbl); });
         }
 
-        // --- MATRIX PROGRESS ---
         function initRevisionProgress() { let progress = JSON.parse(localStorage.getItem('studyTracker_revision_progress')); if(!progress) { progress = {}; Object.keys(caSyllabus).forEach(sub => { progress[sub] = { "1st Revision": [], "2nd Revision": [], "3rd Revision": [] }; }); localStorage.setItem('studyTracker_revision_progress', JSON.stringify(progress)); } }
         function markChapterComplete(subject, chapter, phase) { let progress = JSON.parse(localStorage.getItem('studyTracker_revision_progress')); if(progress[subject] && progress[subject][phase] && !progress[subject][phase].includes(chapter)) { progress[subject][phase].push(chapter); localStorage.setItem('studyTracker_revision_progress', JSON.stringify(progress)); } }
         
@@ -466,70 +447,38 @@
                 let c1 = progress[sub] && progress[sub]["1st Revision"] ? progress[sub]["1st Revision"].length : 0; let p1 = total - c1;
                 let c2 = progress[sub] && progress[sub]["2nd Revision"] ? progress[sub]["2nd Revision"].length : 0; let p2 = total - c2;
                 let c3 = progress[sub] && progress[sub]["3rd Revision"] ? progress[sub]["3rd Revision"].length : 0; let p3 = total - c3;
-                html += `<tr><td style="border-right: 1px solid var(--border-color); font-size: 0.8rem; font-weight:bold;">${sub.replace('Adv. Accounts','Adv Acc').replace('Indirect Tax','IDT').replace('Direct Tax','DT')}</td>
-                    <td><span class="${p1>0?'pend-val':''}">${p1}</span></td><td style="border-right: 1px solid var(--border-color);"><span class="${c1>0?'comp-val':''}">${c1}</span></td>
-                    <td><span class="${p2>0?'pend-val':''}">${p2}</span></td><td style="border-right: 1px solid var(--border-color);"><span class="${c2>0?'comp-val':''}">${c2}</span></td>
-                    <td><span class="${p3>0?'pend-val':''}">${p3}</span></td><td><span class="${c3>0?'comp-val':''}">${c3}</span></td></tr>`;
+                html += `<tr><td style="border-right: 1px solid var(--border-color); font-size: 0.8rem; font-weight:bold;">${sub.replace('Adv. Accounts','Adv Acc').replace('Indirect Tax','IDT').replace('Direct Tax','DT')}</td><td><span class="${p1>0?'pend-val':''}">${p1}</span></td><td style="border-right: 1px solid var(--border-color);"><span class="${c1>0?'comp-val':''}">${c1}</span></td><td><span class="${p2>0?'pend-val':''}">${p2}</span></td><td style="border-right: 1px solid var(--border-color);"><span class="${c2>0?'comp-val':''}">${c2}</span></td><td><span class="${p3>0?'pend-val':''}">${p3}</span></td><td><span class="${c3>0?'comp-val':''}">${c3}</span></td></tr>`;
             });
             html += `</tbody></table></div>`; document.getElementById('revisionMatrixArea').innerHTML = html;
         }
 
-        // --- TIMER AND CONSOLIDATION ---
         let timerState = 'IDLE'; let timerInterval; let sessionStartTime = 0; let accumulatedTime = 0;
-        function updateDisplay(totalSecs) { document.getElementById('timeDisplay').innerText = secondsToTimeString(totalSecs); }
-
         function startTimer() { 
-            timerState = 'RUNNING'; sessionStartTime = Date.now(); 
-            document.getElementById('timerBadgeText').innerText = "● RECORDING"; document.getElementById('timerBadgeText').style.color = "var(--success)";
+            timerState = 'RUNNING'; sessionStartTime = Date.now(); document.getElementById('timerBadgeText').innerText = "● RECORDING"; document.getElementById('timerBadgeText').style.color = "var(--success)";
             document.getElementById('subjectSelect').disabled = true; document.getElementById('chapterInput').disabled = true; document.getElementById('phaseInput').disabled = true; 
             document.getElementById('startRow').style.display = 'none'; document.getElementById('runningRow').style.display = 'flex'; document.getElementById('saveRow').style.display = 'flex';
             document.getElementById('pauseBtn').style.display = 'block'; document.getElementById('resumeBtn').style.display = 'none';
             timerInterval = setInterval(() => { updateDisplay(accumulatedTime + Math.floor((Date.now() - sessionStartTime) / 1000)); }, 1000); 
         }
 
-        function pauseTimer() {
-            timerState = 'PAUSED'; clearInterval(timerInterval); accumulatedTime += Math.floor((Date.now() - sessionStartTime) / 1000);
-            document.getElementById('timerBadgeText').innerText = "⏸ PAUSED"; document.getElementById('timerBadgeText').style.color = "var(--warning)";
-            document.getElementById('pauseBtn').style.display = 'none'; document.getElementById('resumeBtn').style.display = 'block';
-        }
-
-        function resumeTimer() {
-            timerState = 'RUNNING'; sessionStartTime = Date.now();
-            document.getElementById('timerBadgeText').innerText = "● RECORDING"; document.getElementById('timerBadgeText').style.color = "var(--success)";
-            document.getElementById('resumeBtn').style.display = 'none'; document.getElementById('pauseBtn').style.display = 'block';
-            timerInterval = setInterval(() => { updateDisplay(accumulatedTime + Math.floor((Date.now() - sessionStartTime) / 1000)); }, 1000);
-        }
+        function pauseTimer() { timerState = 'PAUSED'; clearInterval(timerInterval); accumulatedTime += Math.floor((Date.now() - sessionStartTime) / 1000); document.getElementById('timerBadgeText').innerText = "⏸ PAUSED"; document.getElementById('timerBadgeText').style.color = "var(--warning)"; document.getElementById('pauseBtn').style.display = 'none'; document.getElementById('resumeBtn').style.display = 'block'; }
+        function resumeTimer() { timerState = 'RUNNING'; sessionStartTime = Date.now(); document.getElementById('timerBadgeText').innerText = "● RECORDING"; document.getElementById('timerBadgeText').style.color = "var(--success)"; document.getElementById('resumeBtn').style.display = 'none'; document.getElementById('pauseBtn').style.display = 'block'; timerInterval = setInterval(() => { updateDisplay(accumulatedTime + Math.floor((Date.now() - sessionStartTime) / 1000)); }, 1000); }
 
         function stopTimer(isComplete) { 
             if(timerState === 'RUNNING') { clearInterval(timerInterval); accumulatedTime += Math.floor((Date.now() - sessionStartTime) / 1000); }
             let sub = document.getElementById('subjectSelect').value; let chap = document.getElementById('chapterInput').value; let phase = document.getElementById('phaseInput').value; let dateStr = new Date().toLocaleDateString('en-GB'); 
-            
             if(isComplete) { markChapterComplete(sub, chap, phase); }
-
-            let hist = JSON.parse(localStorage.getItem('study_history')) || []; 
-            let existingIdx = hist.findIndex(s => s.date === dateStr && s.subject === sub && s.chapter === chap);
-            
-            if(existingIdx > -1) {
-                hist[existingIdx].duration = secondsToTimeString(timeStringToSeconds(hist[existingIdx].duration) + accumulatedTime);
-                hist[existingIdx].timestamp = Date.now(); 
-            } else { 
-                hist.unshift({ date: dateStr, subject: sub, chapter: chap, phase: phase, duration: secondsToTimeString(accumulatedTime), timestamp: Date.now() }); 
-            }
-            localStorage.setItem('study_history', JSON.stringify(hist)); 
-            
-            accumulatedTime = 0; timerState = 'IDLE';
-            document.getElementById('timerBadgeText').innerText = "● IDLE"; document.getElementById('timerBadgeText').style.color = "var(--primary)";
-            
+            let hist = JSON.parse(localStorage.getItem('study_history')) || []; let existingIdx = hist.findIndex(s => s.date === dateStr && s.subject === sub && s.chapter === chap);
+            if(existingIdx > -1) { hist[existingIdx].duration = secondsToTimeString(timeStringToSeconds(hist[existingIdx].duration) + accumulatedTime); hist[existingIdx].timestamp = Date.now(); } 
+            else { hist.unshift({ date: dateStr, subject: sub, chapter: chap, phase: phase, duration: secondsToTimeString(accumulatedTime), timestamp: Date.now() }); }
+            localStorage.setItem('study_history', JSON.stringify(hist)); accumulatedTime = 0; timerState = 'IDLE'; document.getElementById('timerBadgeText').innerText = "● IDLE"; document.getElementById('timerBadgeText').style.color = "var(--primary)";
             document.getElementById('startRow').style.display = 'flex'; document.getElementById('runningRow').style.display = 'none'; document.getElementById('saveRow').style.display = 'none';
             document.getElementById('subjectSelect').disabled = false; document.getElementById('chapterInput').disabled = false; document.getElementById('phaseInput').disabled = false; 
-            
             updateDisplay(0); renderTodayActivity(); calculateDashboardStats(); renderChart();
         }
 
-        // --- DATA MANAGEMENT (IMPORT/EXPORT) ---
         function renderHistoryLogs() { 
-            let hist = JSON.parse(localStorage.getItem('study_history')) || []; let feed = document.getElementById('historyFeed'); 
-            if (hist.length === 0) { feed.innerHTML = '<p style="color: #999; text-align: center; font-style: italic;">No study sessions recorded yet.</p>'; return; } 
+            let hist = JSON.parse(localStorage.getItem('study_history')) || []; let feed = document.getElementById('historyFeed'); if (hist.length === 0) { feed.innerHTML = '<p style="color: #999; text-align: center; font-style: italic;">No study sessions recorded yet.</p>'; return; } 
             let tableHtml = `<div class="table-container"><table class="plan-table"><thead><tr><th>DATE</th><th>SUBJECT</th><th>CHAPTER</th><th>DUR</th></tr></thead><tbody>`; let lim = Math.min(hist.length, 50); let lastDate = ""; 
             for(let i=0; i<lim; i++) { 
                 let s = hist[i]; let dateDisplay = s.date; try { let parts = s.date.split('/'); if(parts.length === 3) { let d = new Date(parts[2], parts[1] - 1, parts[0]); dateDisplay = d.toLocaleDateString('en-IN', {weekday: 'short', day: 'numeric', month: 'short'}); } } catch(e) {} 
@@ -539,26 +488,13 @@
             tableHtml += `</tbody></table></div>`; feed.innerHTML = tableHtml; 
         }
 
-        function exportData() { 
-            let c={}; 
-            for(let i=0;i<localStorage.length;i++){ let k=localStorage.key(i); c[k]=localStorage.getItem(k); } 
-            let a=document.createElement('a'); 
-            a.setAttribute("href","data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(c))); 
-            a.setAttribute("download","StudyTracker_Backup.json"); 
-            document.body.appendChild(a); a.click(); a.remove(); 
-        }
-        
+        function exportData() { let c={}; for(let i=0;i<localStorage.length;i++){ let k=localStorage.key(i); c[k]=localStorage.getItem(k); } let a=document.createElement('a'); a.setAttribute("href","data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(c))); a.setAttribute("download","StudyTracker_Backup.json"); document.body.appendChild(a); a.click(); a.remove(); }
         function importData(e) { 
-            let f = e.target.files[0]; if(!f) return; 
-            let r = new FileReader(); 
+            let f = e.target.files[0]; if(!f) return; let r = new FileReader(); 
             r.onload = function(ev) { 
                 try { 
-                    let d = JSON.parse(ev.target.result); 
-                    
-                    let currentHist = JSON.parse(localStorage.getItem('study_history')) || []; 
-                    let importedHistStr = d['study_history']; let importedHist = [];
+                    let d = JSON.parse(ev.target.result); let currentHist = JSON.parse(localStorage.getItem('study_history')) || []; let importedHistStr = d['study_history']; let importedHist = [];
                     if(importedHistStr) { importedHist = typeof importedHistStr === 'string' ? JSON.parse(importedHistStr) : importedHistStr; }
-                    
                     let mergedObj = {};
                     [...currentHist, ...importedHist].forEach(s => {
                         let key = s.date + '|' + s.subject + '|' + s.chapter;
@@ -569,28 +505,16 @@
                             if ((s.timestamp || 0) > (mergedObj[key].timestamp || 0)) mergedObj[key].timestamp = s.timestamp;
                         }
                     });
-                    
-                    let uniqueHist = Object.values(mergedObj).sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
-                    localStorage.setItem('study_history', JSON.stringify(uniqueHist));
-                    
-                    let currentProg = JSON.parse(localStorage.getItem('studyTracker_revision_progress')) || {}; 
-                    let importedProgStr = d['studyTracker_revision_progress']; let importedProg = {};
+                    localStorage.setItem('study_history', JSON.stringify(Object.values(mergedObj).sort((a,b) => (b.timestamp||0) - (a.timestamp||0))));
+                    let currentProg = JSON.parse(localStorage.getItem('studyTracker_revision_progress')) || {}; let importedProgStr = d['studyTracker_revision_progress']; let importedProg = {};
                     if(importedProgStr) { importedProg = typeof importedProgStr === 'string' ? JSON.parse(importedProgStr) : importedProgStr; }
-
-                    for(let sub in importedProg) { 
-                        if(!currentProg[sub]) currentProg[sub] = importedProg[sub]; 
-                        else { ['1st Revision','2nd Revision','3rd Revision'].forEach(phase => { if(importedProg[sub][phase]) currentProg[sub][phase] = [...new Set([...(currentProg[sub][phase]||[]), ...importedProg[sub][phase]])]; }); } 
-                    }
+                    for(let sub in importedProg) { if(!currentProg[sub]) currentProg[sub] = importedProg[sub]; else { ['1st Revision','2nd Revision','3rd Revision'].forEach(phase => { if(importedProg[sub][phase]) currentProg[sub][phase] = [...new Set([...(currentProg[sub][phase]||[]), ...importedProg[sub][phase]])]; }); } }
                     localStorage.setItem('studyTracker_revision_progress', JSON.stringify(currentProg));
-
                     if(d['studyTracker_planner_settings']) localStorage.setItem('studyTracker_planner_settings', typeof d['studyTracker_planner_settings'] === 'string' ? d['studyTracker_planner_settings'] : JSON.stringify(d['studyTracker_planner_settings']));
                     if(d['studyTracker_saved_plan']) localStorage.setItem('studyTracker_saved_plan', d['studyTracker_saved_plan']);
-                    
-                    document.getElementById('fileInput').value = '';
-                    alert("Backup merged successfully!"); location.reload(); 
-                } catch(err) { alert("Error reading backup file. Make sure you selected the .json backup file."); } 
-            }; 
-            r.readAsText(f); 
+                    document.getElementById('fileInput').value = ''; alert("Backup merged successfully!"); location.reload(); 
+                } catch(err) { alert("Error reading backup file."); } 
+            }; r.readAsText(f); 
         }
     </script>
 </body>
