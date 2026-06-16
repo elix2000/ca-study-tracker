@@ -89,11 +89,10 @@
             <img src="logo.png" alt="StudyTracker Logo" class="app-logo" onerror="this.style.display='none'">
             StudyTracker
         </div>
-        <div style="font-size: 1.2rem;">📅</div>
     </div>
 
-    <!-- VIEW 1: DASHBOARD -->
     <div id="dashboardView" class="view-section active">
+        
         <div class="section-title" style="margin-top: 0;">Hourly Activity</div>
         <div class="card">
             <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
@@ -146,7 +145,6 @@
         <div id="todayActivityArea"></div>
     </div>
 
-    <!-- VIEW 2: PLANNER -->
     <div id="plannerView" class="view-section">
         <div class="section-title" style="margin-top: 0;">Exam Planner (Sept 2026)</div>
         <div class="planner-nav">
@@ -201,7 +199,6 @@
         </div>
     </div>
 
-    <!-- VIEW 3: PROGRESS -->
     <div id="progressView" class="view-section">
         <div class="section-title" style="margin-top: 0;">Revision Progress Dashboard</div>
         <div id="revisionMatrixArea"></div>
@@ -210,7 +207,6 @@
         <div id="historyFeed"></div>
 
         <div class="section-title" style="margin-top: 30px;">Data Management</div>
-        <button class="btn-secondary" id="manualInstallBtn" style="display:none; background:var(--success); color:white; border:none;" onclick="triggerManualInstall()">📱 Install Mobile App Container</button>
         <button class="btn-secondary" onclick="exportData()">📥 Export Backup Data</button>
         <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">📤 Upload & Merge Backup</button>
         <input type="file" id="fileInput" style="display: none;" accept=".json,application/json,text/plain,*/*" onchange="importData(event)">
@@ -225,30 +221,6 @@
     </div>
 
     <script>
-        // --- SERVICE WORKER & MANUAL PWA LOGIC ---
-        let deferredPrompt;
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => { console.log('Offline Ready.'); });
-            });
-        }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
-            const manualBtn = document.getElementById('manualInstallBtn');
-            if (manualBtn) manualBtn.style.display = 'block'; // Shows manual button on Progress View
-        });
-
-        function triggerManualInstall() {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choice) => {
-                if (choice.outcome === 'accepted') { console.log('User installed container.'); }
-                deferredPrompt = null;
-                document.getElementById('manualInstallBtn').style.display = 'none';
-            });
-        }
-
         const caSyllabus = { 
             "Adv. Accounts": ["AS 1: Disclosure of Accounting Policies", "AS 2: Valuation of Inventories", "AS 3: Cash Flow Statements", "AS 4: Contingencies and Events After Balance Sheet Date", "AS 5: Net Profit/Loss, Prior Period Items & Policies", "AS 7: Construction Contracts", "AS 9: Revenue Recognition", "AS 10: Property, Plant and Equipment", "AS 11: Foreign Exchange Rates", "AS 12: Accounting for Government Grants", "AS 13: Accounting for Investments", "AS 14: Accounting for Amalgamations", "AS 15: Employee Benefits", "AS 16: Borrowing Costs", "AS 17: Segment Reporting", "AS 18: Related Party Disclosures", "AS 19: Leases", "AS 20: Earnings Per Share", "AS 21: Consolidated Financial Statements", "AS 22: Accounting for Taxes on Income", "AS 23: Investments in Associates", "AS 24: Discontinuing Operations", "AS 25: Interim Financial Reporting", "AS 27: Financial Reporting of Joint Ventures", "AS 28: Impairment of Assets", "AS 29: Provisions & Contingencies", "Financial Statements of Companies", "Buyback of Securities", "Amalgamation of Companies", "Accounting for Reconstruction of Companies", "Accounting for Branches"], 
             "Law": ["Preliminary", "Incorporation and Matters Incidental", "Prospectus and Allotment of Securities", "Share Capital and Debentures", "Acceptance of Deposits", "Registration of Charges", "Management and Administration", "Declaration and Payment of Dividends", "Accounts of Companies", "Audit and Auditors", "The LLP Act, 2008", "The General Clauses Act, 1897", "Interpretation of Statutes", "The Foreign Exchange Management Act, 1999"], 
@@ -280,14 +252,17 @@
             runDataMigration();
             let subSel = document.getElementById('subjectSelect'); Object.keys(caSyllabus).forEach(s => subSel.innerHTML += `<option value="${s}">${s}</option>`);
             loadChapters(); initRevisionProgress(); updateDaysLeft(); calculateDashboardStats(); renderTodayActivity(); renderChart();
+            
             const savedPlan = localStorage.getItem('studyTracker_saved_plan'); if(savedPlan) document.getElementById('calendarOutput').innerHTML = savedPlan;
             loadPlannerSettings(); 
+
             document.querySelectorAll('#step1 input').forEach(inp => { inp.addEventListener('input', savePlannerSettings); });
         };
 
         function updateDaysLeft() {
             const today = new Date(); today.setHours(0,0,0,0); const examDate = new Date(2026, 8, 1); 
-            document.getElementById('daysLeft').innerText = Math.max(0, Math.ceil((examDate - today) / (1000 * 60 * 60 * 24)));
+            const diffTime = examDate - today; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            document.getElementById('daysLeft').innerText = diffDays > 0 ? diffDays : 0;
         }
 
         function savePlannerSettings() {
@@ -452,7 +427,10 @@
             html += `</tbody></table></div>`; document.getElementById('revisionMatrixArea').innerHTML = html;
         }
 
+        // --- TIMER ---
         let timerState = 'IDLE'; let timerInterval; let sessionStartTime = 0; let accumulatedTime = 0;
+        function updateDisplay(totalSecs) { document.getElementById('timeDisplay').innerText = secondsToTimeString(totalSecs); }
+
         function startTimer() { 
             timerState = 'RUNNING'; sessionStartTime = Date.now(); document.getElementById('timerBadgeText').innerText = "● RECORDING"; document.getElementById('timerBadgeText').style.color = "var(--success)";
             document.getElementById('subjectSelect').disabled = true; document.getElementById('chapterInput').disabled = true; document.getElementById('phaseInput').disabled = true; 
