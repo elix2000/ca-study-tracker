@@ -31,7 +31,7 @@ jobs:
       - name: Install Apache Cordova
         run: npm install -g cordova
 
-      - name: Package App Assets
+      - name: Package App Assets & Inject Icon Configuration
         run: |
           cordova create compiler_env com.jaimin.studytracker StudyTracker
           cd compiler_env
@@ -40,6 +40,10 @@ jobs:
           cp ../logo.png www/ || true
           cp ../manifest.json www/ || true
           cp ../sw.js www/ || true
+          
+          # Inject your logo file as the native platform icon and suppress the generic splash screen
+          sed -i 's|</widget>|<icon src="www/logo.png" />\n<preference name="ShowSplashScreen" value="false"/>\n<preference name="SplashScreenDelay" value="0"/>\n</widget>|' config.xml
+          
           cordova platform add android
           cordova build android --device
 
@@ -48,4 +52,3 @@ jobs:
         with:
           name: StudyTracker-Mobile-App
           path: compiler_env/platforms/android/app/build/outputs/apk/debug/app-debug.apk
-          
